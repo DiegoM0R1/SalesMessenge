@@ -1,0 +1,31 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Editar Cotización{% endblock %}
+
+{% block page_title %}Editar Cotización{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Editar Cotización</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" required>{{ cotizacion.descripcion }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="valor">Valor</label>
+            <input type="number" class="form-control" id="valor" name="valor" value="{{ cotizacion.valor }}" required>
+        </div>
+        <div class="form-group">
+            <label for="estado">Estado</label>
+            <select class="form-control" id="estado" name="estado" required>
+                <option value="enviada" {% if cotizacion.estado == 'enviada' %}selected{% endif %}>Enviada</option>
+                <option value="aceptada" {% if cotizacion.estado == 'aceptada' %}selected{% endif %}>Aceptada</option>
+                <option value="rechazada" {% if cotizacion.estado == 'rechazada' %}selected{% endif %}>Rechazada</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    </form>
+</div>
+{% endblock %}

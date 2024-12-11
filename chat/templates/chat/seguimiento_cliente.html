@@ -1,0 +1,16 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Seguimiento al Cliente{% endblock %}
+
+{% block page_title %}Seguimiento al Cliente{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Seguimiento al Cliente</h1>
+    <p><strong>Cliente:</strong> {{ consulta.cliente.nombre }}</p>
+    <p><strong>Descripción:</strong> {{ consulta.descripcion }}</p>
+    <p><strong>Estado:</strong> {{ consulta.estado }}</p>
+    <p><strong>Fecha de Resolución:</strong> {{ consulta.fecha_resolucion }}</p>
+    <a href="{% url 'cerrar_caso' consulta.id %}" class="btn btn-primary">Cerrar Caso</a>
+</div>
+{% endblock %}

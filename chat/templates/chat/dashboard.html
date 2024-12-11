@@ -1,0 +1,125 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h1>Dashboard</h1>
+    <div class="row">
+    <div class="col-md-4">
+        <div class="card-custom bg-dark text-white">
+            <div class="card-header">Total de Clientes</div>
+            <div class="card-body">
+                <h5 class="card-title">{{ total_clientes }}</h5>
+            </div>
+        </div>
+    </div> 
+</div>
+<br>
+    <div class="row">   
+        <div class="col-md-4">
+            <div class="card-custom bg-success text-white">
+                <div class="card-header">Clientes Activos</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ clientes_activos }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-custom bg-danger text-white">
+                <div class="card-header">Clientes Inactivos</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ clientes_inactivos }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-custom bg-warning text-white">
+                <div class="card-header">Clientes Prospectos</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ clientes_prospectos }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card-custom bg-info text-white">
+                <div class="card-header">Ingresos Totales</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ ingresos_totales }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-custom bg-secondary text-white">
+                <div class="card-header">Ventas Totales</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ ventas_totales }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-custom bg-dark text-white">
+                <div class="card-header">Nuevos Clientes</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ nuevos_clientes }}</h5>
+                </div>
+            </div>
+        </div>
+    </div> <br>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card-custom bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Ventas del Mes</h5>
+                    <p class="card-text">{{ ventas_mes }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card-custom">
+                <div class="card-body">
+                    <h5 class="card-title">Comparación de Ventas: Mes Anterior vs Mes Actual</h5>
+                    <div>{{ chart_ventas_html|safe }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card-custom">
+                <div class="card-body">
+                    <h5 class="card-title">Segmentación de Clientes</h5>
+                    <div>{{ chart_html|safe }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card-custom">
+                <div class="card-body">
+                    <h5 class="card-title">Pipeline de Ventas</h5>
+                    <div>{{ chart_bar_html|safe }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card-custom">
+                <div class="card-body">
+                    <h5 class="card-title">Pipeline de Ventas (Embudo)</h5>
+                    <div>{{ chart_funnel_html|safe }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+<br>
+
+{% endblock %}

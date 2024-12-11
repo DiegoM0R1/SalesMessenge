@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Estudio Tesen{% endblock %}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base_styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="{% url 'dashboard' %}">
+            <img src="{% static 'imagenes/logo_empresa.png' %}" alt="Estudio Tesen" class="logo-navbar">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                {% if request.session.usuario_id %}
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center" href="{% url 'editar_perfil' %}">
+                            {% if usuario_actual.foto_perfil %}
+                                <img src="{{ usuario_actual.foto_perfil.url }}" alt="Foto de Perfil" class="foto-perfil">
+                            {% else %}
+                                <i class="bi bi-person-circle"></i>
+                            {% endif %}
+                            <span>{{ usuario_actual.nombre_usuario }} ({{ usuario_actual.get_tipo_usuario_display }})</span>
+                        </a>
+                    </li>
+                {% endif %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'lista_usuarios' %}"><i class="bi bi-chat"></i> Chats</a></li>               
+                <li class="nav-item"><a class="nav-link" href="{% url 'lista_oportunidades' %}"><i class="bi bi-cash-coin"></i> Ventas</a></li>               
+                
+                <li class="nav-item"><a class="nav-link" href="{% url 'lista_clientes' %}"><i class="bi bi-people"></i> Clientes</a></li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="atencionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="bi bi-headset"></i> Atención al Cliente
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="atencionDropdown">
+                        <a class="dropdown-item" href="{% url 'registrar_consulta' %}">Registrar Consulta</a>
+                        <a class="dropdown-item" href="{% url 'lista_consultas' %}">Lista de Consultas</a>
+                    </div>
+                </li>
+                {% if usuario_actual.tipo_usuario == 'admin' %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'backup_database' %}">Backup</a></li>
+    {% endif %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Cerrar Sesión</a></li>
+            
+            </ul>
+            <form class="form-inline my-2 my-lg-0" method="get" action="{% url 'buscar' %}">
+                <input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar" name="q">
+                <input type="hidden" name="module" value="{% block module %}{% endblock %}">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>
+            </form>
+            <button id="theme-toggle" class="btn btn-secondary ml-auto">Cambiar Tema</button>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        {% block content %}
+        {% endblock %}
+    </div>
+    <footer>
+        <p>&copy; 2024 Estudio Tesen. Todos los derechos reservados.</p>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Script para cambiar el tema
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const currentTheme = localStorage.getItem('theme') || 'dark-mode';
+            document.body.classList.add(currentTheme);
+            document.querySelector('.navbar').classList.add(currentTheme);
+            document.querySelector('footer').classList.add(currentTheme);
+            document.querySelectorAll('.usuario-item').forEach(item => item.classList.add(currentTheme));
+
+            themeToggle.addEventListener('click', function() {
+                const newTheme = document.body.classList.contains('dark-mode') ? 'light-mode' : 'dark-mode';
+                document.body.classList.toggle('dark-mode');
+                document.body.classList.toggle('light-mode');
+                document.querySelector('.navbar').classList.toggle('dark-mode');
+                document.querySelector('.navbar').classList.toggle('light-mode');
+                document.querySelector('footer').classList.toggle('dark-mode');
+                document.querySelector('footer').classList.toggle('light-mode');
+                document.querySelectorAll('.usuario-item').forEach(item => {
+                    item.classList.toggle('dark-mode');
+                    item.classList.toggle('light-mode');
+                });
+                localStorage.setItem('theme', newTheme);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+body {
+    background: linear-gradient(to right, #080a1a, #002b5c);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    flex-direction: column;
+}
+
+.frase {
+    color: #ffffff;
+    position: absolute;
+    text-align: auto;
+    display: flex;
+    width: 31%;
+    left: 400px;
+    top: 220px;
+    font-size: 50px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.eslogan {
+    color: #ffffff;
+    position: absolute;
+    top: 600px;
+    right: 300px;
+    font-size: 28px;
+    text-align: center;
+    width: 100%;
+}
+
+.logo {
+    width: 80%;
+    height: 80%;
+    background-image: url("../imagenes/logo_empresa.png");
+    background-size: contain;
+    position: absolute;
+    right: 300px;
+    bottom: 200px;
+}
+
+.container-custom {
+    background-color: rgb(0, 0, 0);
+    border-radius: 15px;
+    box-shadow: 0 1px 5px;
+    padding: 230px;
+    position: relative;
+    left: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 3;
+}
+
+.email {
+    display: flex;
+    margin-bottom: 50px;
+    position: relative;
+}
+
+.boton_sesion {
+    background-color: #fffb00;
+    font-weight: 700;
+    color: black;
+}
+
+#iniciar_sesion {
+    color: white;
+    position: relative;
+    bottom: 50px;
+}
+
+.text-center {
+    color: white;
+    position: relative;
+    bottom: 10px;
+}
+
+.triangulo1 {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40vh;
+    background-color: #fff700;
+    clip-path: polygon(100% 50%, 100% 20%, 100% 100%, 0 100%);
+    z-index: 2;
+}
+
+.triangulo2 {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40vh;
+    background-color: #d8d210;
+    clip-path: polygon(0% 50%, 100% 20%, 100% 100%, 0 100%);
+    z-index: 1;
+}
+
+/* Media Queries */
+@media (max-width: 1024px) {
+    .frase {
+        font-size: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        top: 100px;
+    }
+
+    .eslogan {
+        font-size: 24px;
+        top: 500px;
+        right: 50%;
+        transform: translateX(50%);
+    }
+
+    .logo {
+        width: 60%;
+        right: 50%;
+        transform: translateX(50%);
+        bottom: 100px;
+    }
+
+    .container-custom {
+        padding: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+@media (max-width: 768px) {
+    .frase {
+        font-size: 30px;
+        top: 50px;
+    }
+
+    .eslogan {
+        font-size: 20px;
+        top: 400px;
+    }
+
+    .logo {
+        width: 50%;
+        bottom: 50px;
+    }
+
+    .container-custom {
+        padding: 20px;
+    }
+}

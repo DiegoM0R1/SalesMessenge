@@ -1,0 +1,33 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Registrar Cotización{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Registrar Cotización</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="cliente">Cliente</label>
+            <input type="text" class="form-control" id="cliente" name="cliente" value="{{ cliente.nombre }}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="descripcion">Descripcion razon a cotizacion</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" required>{{ oportunidad.descripcion }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="valor">Valor</label>
+            <input type="number" class="form-control" id="valor" name="valor" value="{{ oportunidad.valor }}" required>
+        </div>
+        <div class="form-group">
+            <label for="estado">Estado</label>
+            <select class="form-control" id="estado" name="estado" required>
+                <option value="enviada">Enviada</option>
+                <option value="aceptada">Aceptada</option>
+                <option value="rechazada">Rechazada</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Registrar</button>
+    </form>
+</div>
+{% endblock %}

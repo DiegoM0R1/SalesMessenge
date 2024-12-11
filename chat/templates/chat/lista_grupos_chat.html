@@ -1,0 +1,24 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Lista de Grupos de Chat{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Lista de Grupos de Chat</h1>
+    <a href="{% url 'crear_grupo_chat' %}" class="btn btn-primary mb-3">Crear Grupo</a>
+    <ul class="list-group">
+        {% for grupo in grupos %}
+            <li class="list-group-item">
+                <a href="{% url 'chat_grupo' grupo.id %}">{{ grupo.nombre }}</a>
+                <div>
+                    <a href="{% url 'editar_grupo_chat' grupo.id %}" class="btn btn-primary btn-sm">Editar</a>
+                    <form action="{% url 'eliminar_grupo_chat' grupo.id %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                    </form>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

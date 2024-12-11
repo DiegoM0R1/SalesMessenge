@@ -1,0 +1,33 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Resultados de Búsqueda{% endblock %}
+
+{% block page_title %}Resultados de Búsqueda{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Resultados de Búsqueda</h1>
+    <ul class="list-group">
+        {% if module == 'usuarios' %}
+            {% for usuario in resultados %}
+                <li class="list-group-item">
+                    <p><strong>Nombre de Usuario:</strong> {{ usuario.nombre_usuario }}</p>
+                    <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
+                    <p><strong>Apellido:</strong> {{ usuario.apellido }}</p>
+                </li>
+            {% endfor %}
+        {% elif module == 'clientes' %}
+            {% for cliente in resultados %}
+                <li class="list-group-item">
+                    <p><strong>Nombre:</strong> {{ cliente.nombre }}</p>
+                    <p><strong>Email:</strong> {{ cliente.email }}</p>
+                    <p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
+                    <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
+                    <p><strong>Categoría:</strong> {{ cliente.categoria }}</p>
+                    <p><strong>Estado:</strong> {{ cliente.estado }}</p>
+                </li>
+            {% endfor %}
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}

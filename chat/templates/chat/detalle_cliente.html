@@ -1,0 +1,20 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Detalle del Cliente{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Detalle del Cliente</h1>
+    <p><strong>Nombre:</strong> {{ cliente.nombre }}</p>
+    <p><strong>Email:</strong> {{ cliente.email }}</p>
+    <p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
+    <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
+    <p><strong>Categoría:</strong> {{ cliente.categoria }}</p>
+    <p><strong>Estado:</strong> {{ cliente.estado }}</p>
+    <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-primary">Editar</a>
+    <form action="{% url 'eliminar_cliente' cliente.id %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+    </form>
+</div>
+{% endblock %}

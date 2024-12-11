@@ -1,0 +1,35 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Generar Factura{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Generar Factura</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="tipo_pago">Tipo de Pago</label>
+            <select class="form-control" id="tipo_pago" name="tipo_pago" required>
+                <option value="total">Total</option>
+                <option value="parcial">Parcial</option>
+            </select>
+        </div>
+        <div class="form-group" id="monto_inicial_group" style="display: none;">
+            <label for="monto_inicial">Monto Inicial</label>
+            <input type="number" class="form-control" id="monto_inicial" name="monto_inicial">
+        </div>
+        <button type="submit" class="btn btn-primary">Generar Factura</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('tipo_pago').addEventListener('change', function() {
+    var montoInicialGroup = document.getElementById('monto_inicial_group');
+    if (this.value === 'parcial') {
+        montoInicialGroup.style.display = 'block';
+    } else {
+        montoInicialGroup.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

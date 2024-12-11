@@ -1,0 +1,53 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Lista de Cotizaciones{% endblock %}
+
+{% block page_title %}Lista de Cotizaciones{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Lista de Cotizaciones</h1>
+    <a href="{% url 'lista_oportunidades' %}" class="btn btn-primary mb-3">Oportunidades</a>
+    <a href="{% url 'lista_facturas' %}" class="btn btn-primary mb-3">Facturas</a>
+    <a href="{% url 'lista_ingresos' %}" class="btn btn-primary mb-3">Ingresos</a>
+    
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered table-custom">
+            <thead class="thead-dark">
+                <tr>
+                    <th>DNI</th>
+                    <th>Oportunidad</th>
+                    <th>Descripción</th>
+                    <th>Valor</th>
+                    <th>Fecha de Envío</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cotizacion in cotizaciones %}
+                    <tr>
+                        <td>{{ cotizacion.oportunidad.cliente.dni}}</td>
+                        <td>{{ cotizacion.oportunidad.cliente.nombre }}</td>
+                        <td>{{ cotizacion.descripcion }}</td>
+                        <td>{{ cotizacion.valor }}</td>
+                        <td>{{ cotizacion.fecha_envio }}</td>
+                        <td>{{ cotizacion.estado }}</td>
+                        <td>
+                            <a href="{% url 'detalle_cotizacion' cotizacion.id %}" class="btn btn-info btn-sm">Ver</a>
+                            <a href="{% url 'editar_cotizacion' cotizacion.id %}" class="btn btn-primary btn-sm">Editar</a>
+                            <form action="{% url 'eliminar_cotizacion' cotizacion.id %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                            {% if cotizacion.estado == 'aceptada' %}
+                            <a href="{% url 'generar_factura_desde_cotizacion' cotizacion.id %}" class="btn btn-primary btn-sm">Generar Factura</a>
+                        {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

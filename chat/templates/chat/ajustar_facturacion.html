@@ -1,0 +1,32 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Ajustar Facturación{% endblock %}
+
+{% block page_title %}Ajustar Facturación{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Ajustar Facturación</h1>
+    <p><strong>Cliente:</strong> {{ consulta.cliente.nombre }}</p>
+    <p><strong>Descripción:</strong> {{ consulta.descripcion }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="factura">Factura</label>
+            <select class="form-control" id="factura" name="factura" required>
+                {% for factura in facturas %}
+                    <option value="{{ factura.id }}">Factura #{{ factura.id }} - {{ factura.total }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="estado">Estado</label>
+            <select class="form-control" id="estado" name="estado" required>
+                <option value="pendiente">Pendiente</option>
+                <option value="pagada">Pagada</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajustar</button>
+    </form>
+</div>
+{% endblock %}

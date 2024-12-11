@@ -1,0 +1,39 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Usuarios{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mt-4">Usuarios</h1>
+    {% if usuario_actual.tipo_usuario == 'admin' %}
+        <a href="{% url 'registrar_usuario' %}" class="btn btn-primary mb-3">Registrar Usuario</a>
+        <a href="{% url 'lista_grupos_chat' %}" class="btn btn-primary mb-3">Grupos</a>
+
+    {% endif %}
+    <ul class="list-group">
+        {% for usuario in usuarios %}
+            <li class="list-group-item d-flex justify-content-between align-items-center usuario-item">
+                <span class="d-flex align-items-center">
+                    {% if usuario.foto_perfil %}
+                        <img src="{{ usuario.foto_perfil.url }}" alt="Foto de Perfil" class="foto-perfil">
+                    {% else %}
+                        <i class="bi bi-person-circle"></i>
+                    {% endif %}
+                    <a href="{% url 'chat' usuario.id %}" class="usuario-link ml-2">{{ usuario.nombre_usuario }} ({{ usuario.get_tipo_usuario_display }})</a>
+                </span>
+                <div>
+                    {% if usuario_actual.tipo_usuario == 'admin' %}
+                        <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-primary btn-sm">Editar</a>
+                        <form action="{% url 'eliminar_usuario' usuario.id %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+
+

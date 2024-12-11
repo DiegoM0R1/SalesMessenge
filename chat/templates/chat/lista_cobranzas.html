@@ -1,0 +1,33 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Lista de Cobranzas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Lista de Cobranzas</h1>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Factura</th>
+                <th>Fecha de Cobranza</th>
+                <th>Monto</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cobranza in cobranzas %}
+                <tr>
+                    <td>{{ cobranza.id }}</td>
+                    <td>{{ cobranza.cliente.nombre }}</td>
+                    <td>{{ cobranza.factura.id }}</td>
+                    <td>{{ cobranza.fecha_cobranza }}</td>
+                    <td>{{ cobranza.monto }}</td>
+                    <td>{{ cobranza.estado }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

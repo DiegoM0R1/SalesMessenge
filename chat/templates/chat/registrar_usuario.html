@@ -1,0 +1,24 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Registrar Usuario{% endblock %}
+
+{% block content %}
+<h1>Registrar Usuario</h1>
+<form method="post">
+    {% csrf_token %}
+    <p><label for="nombre">Nombre:</label> <input type="text" name="nombre" required></p>
+    <p><label for="apellido">Apellido:</label> <input type="text" name="apellido" required></p>
+    <p><label for="codigo">DNI:</label> <input type="text" name="codigo" required></p>
+    <p><label for="direccion">Email:</label> <input type="text" name="direccion" required></p>
+    <p><label for="fecha_nacimiento">Fecha de Nacimiento:</label> <input type="date" name="fecha_nacimiento" required></p>
+    <p><label for="nombre_usuario">Nombre de Usuario:</label> <input type="text" name="nombre_usuario" required></p>
+    <p><label for="contrasena">Contraseña:</label> <input type="password" name="contrasena" required></p>
+    <p><label for="tipo_usuario">Tipo de Usuario:</label>
+        <select name="tipo_usuario">
+            <option value="admin">Administrador</option>
+            <option value="trabajador">Trabajador de área</option>
+        </select>
+    </p>
+    <button type="submit">Registrar</button>
+</form>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Detalle de la Consulta{% endblock %}
+
+{% block page_title %}Detalle de la Consulta{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Detalle de la Consulta</h1>
+    <p><strong>Cliente:</strong> {{ consulta.cliente.nombre }}</p>
+    <p><strong>Descripción:</strong> {{ consulta.descripcion }}</p>
+    <p><strong>Estado:</strong> {{ consulta.estado }}</p>
+    <p><strong>Fecha de Creación:</strong> {{ consulta.fecha_creacion }}</p>
+    <p><strong>Fecha de Resolución:</strong> {{ consulta.fecha_resolucion }}</p>
+    <a href="{% url 'resolver_consulta' consulta.id %}" class="btn btn-primary">Resolver</a>
+    <a href="{% url 'ajustar_facturacion' consulta.id %}" class="btn btn-warning">Ajustar Facturación</a>
+    <a href="{% url 'seguimiento_cliente' consulta.id %}" class="btn btn-success">Seguimiento</a>
+    <a href="{% url 'cerrar_caso' consulta.id %}" class="btn btn-danger">Cerrar Caso</a>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Seguimiento de Pago{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Seguimiento de Pago</h1>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Cliente: {{ factura.cliente.nombre }}</h5>
+            <p class="card-text">Total: {{ factura.total }}</p>
+            <p class="card-text">Estado: {{ factura.estado }}</p>
+        </div>
+    </div>
+    <h2>Cobranzas</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Monto</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cobranza in cobranzas %}
+                <tr>
+                    <td>{{ cobranza.fecha_cobranza }}</td>
+                    <td>{{ cobranza.monto }}</td>
+                    <td>{{ cobranza.estado }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#registrarPagoModal">
+        Registrar Pago
+    </button>
+    <!-- Modal -->
+    <div class="modal fade" id="registrarPagoModal" tabindex="-1" role="dialog" aria-labelledby="registrarPagoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registrarPagoModalLabel">Registrar Pago</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="monto">Monto</label>
+                            <input type="number" class="form-control" id="monto" name="monto" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Registrar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

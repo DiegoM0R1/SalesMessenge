@@ -1,0 +1,23 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Registrar Venta{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h1>Registrar Venta</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="fecha_pago" class="form-label">Fecha de Pago</label>
+            <input type="datetime-local" id="fecha_pago" name="fecha_pago" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="monto" class="form-label">Monto</label>
+            <input type="number" id="monto" name="monto" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Registrar</button>
+        <a href="{% url 'lista_facturas' %}" class="btn btn-danger mb-3">cancelar</a>
+    </form>
+</div>
+{% endblock %}

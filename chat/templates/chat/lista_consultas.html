@@ -1,0 +1,44 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Lista de Consultas{% endblock %}
+
+{% block page_title %}Lista de Consultas{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Lista de Consultas</h1>
+    <a href="{% url 'registrar_consulta' %}" class="btn btn-primary mb-3">Registrar Consulta</a>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered table-custom">
+            <thead class="thead-dark">
+                <tr>
+                    <th>DNI</th>
+                    <th>Cliente</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th>Fecha de Creación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for consulta in consultas %}
+                    <tr>
+                        <td>{{ consulta.cliente.dni }}</td>
+                        <td>{{ consulta.cliente.nombre }}</td>
+                        <td>{{ consulta.descripcion }}</td>
+                        <td>{{ consulta.estado }}</td>
+                        <td>{{ consulta.fecha_creacion }}</td>
+                        <td>
+                            <a href="{% url 'detalle_consulta' consulta.id %}" class="btn btn-info btn-sm">Ver</a>
+                            <a href="{% url 'resolver_consulta' consulta.id %}" class="btn btn-primary btn-sm">Resolver</a>
+                            <a href="{% url 'ajustar_facturacion' consulta.id %}" class="btn btn-warning btn-sm">Ajustar Facturación</a>
+                            <a href="{% url 'seguimiento_cliente' consulta.id %}" class="btn btn-success btn-sm">Seguimiento</a>
+                            <a href="{% url 'cerrar_caso' consulta.id %}" class="btn btn-danger btn-sm">Cerrar Caso</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

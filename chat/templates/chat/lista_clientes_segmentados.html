@@ -1,0 +1,24 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Lista de Clientes - {{ estado }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Lista de Clientes - {{ estado }}</h1>
+    <ul class="list-group">
+        {% for cliente in clientes %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ cliente.nombre }}</span>
+                <div>
+                    <a href="{% url 'detalle_cliente' cliente.id %}" class="btn btn-info btn-sm">Ver</a>
+                    <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-primary btn-sm">Editar</a>
+                    <form action="{% url 'eliminar_cliente' cliente.id %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                    </form>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Resolver Consulta{% endblock %}
+
+{% block page_title %}Resolver Consulta{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Resolver Consulta</h1>
+    <p><strong>Cliente:</strong> {{ consulta.cliente.nombre }}</p>
+    <p><strong>Descripción:</strong> {{ consulta.descripcion }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Marcar como Resuelto</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Detalle de la Oportunidad{% endblock %}
+
+{% block page_title %}Detalle de la Oportunidad{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Detalle de la Oportunidad</h1>
+    <p><strong>Cliente:</strong> {{ oportunidad.cliente.nombre }}</p>
+    <p><strong>Estado:</strong> {{ oportunidad.estado }}</p>
+    <p><strong>Valor:</strong> {{ oportunidad.valor }}</p>
+    <p><strong>Fecha de Creación:</strong> {{ oportunidad.fecha_creacion }}</p>
+    <a href="{% url 'editar_oportunidad' oportunidad.id %}" class="btn btn-primary">Editar</a>
+    <a href="{% url 'generar_factura' oportunidad.id %}" class="btn btn-primary">Generar Factura</a>
+    <form action="{% url 'eliminar_oportunidad' oportunidad.id %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Cancelar</button>
+    </form>
+</div>
+{% endblock %}

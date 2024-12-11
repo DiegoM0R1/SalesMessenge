@@ -1,0 +1,32 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Editar Oportunidad{% endblock %}
+
+{% block page_title %}Editar Oportunidad{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Editar Oportunidad</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" required>{{ oportunidad.descripcion }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="valor">Valor</label>
+            <input type="number" class="form-control" id="valor" name="valor" value="{{ oportunidad.valor }}" required>
+        </div>
+        <div class="form-group">
+            <label for="estado">Estado</label>
+            <select class="form-control" id="estado" name="estado" required>
+                <option value="prospecto" {% if oportunidad.estado == 'prospecto' %}selected{% endif %}>Prospecto</option>
+                <option value="negociacion" {% if oportunidad.estado == 'negociacion' %}selected{% endif %}>En Negociación</option>
+                <option value="cerrado" {% if oportunidad.estado == 'cerrado' %}selected{% endif %}>Cerrado</option>
+                <option value="seguimiento" {% if oportunidad.estado == 'seguimiento' %}selected{% endif %}>Seguimiento</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    </form>
+</div>
+{% endblock %}

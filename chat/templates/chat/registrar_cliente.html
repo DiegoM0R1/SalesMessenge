@@ -1,0 +1,140 @@
+{% extends 'chat/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Crear Cliente</h1>
+    <div class="alert alert-danger" id="errorAlert" style="display: none;"></div>
+    <div class="alert alert-success" id="successAlert" style="display: none;"></div>
+    
+    <form method="post" id="clienteForm">
+        {% csrf_token %}
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="id_dni">DNI:</label>
+                <div class="input-group">
+                    {{ form.dni }}
+                    <button type="button" id="buscarDniBtn" class="btn btn-primary">
+                        Buscar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        {% for field in form %}
+            {% if field.name != 'dni' %}
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                    {{ field }}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+        
+        <button type="submit" class="btn btn-success">Guardar Cliente</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const buscarDniBtn = document.getElementById('buscarDniBtn');
+    const dniInput = document.getElementById('id_dni');
+    const nombreInput = document.getElementById('id_nombre');
+    const emailInput = document.getElementById('id_email');
+    const telefonoInput = document.getElementById('id_telefono');
+    const direccionInput = document.getElementById('id_direccion');
+    const categoriaInput = document.getElementById('id_categoria');
+    const estadoInput = document.getElementById('id_estado');
+    const errorAlert = document.getElementById('errorAlert');
+    const successAlert = document.getElementById('successAlert');
+    const clienteForm = document.getElementById('clienteForm');
+
+    function showError(message) {
+        console.error('Error:', message);
+        errorAlert.textContent = message;
+        errorAlert.style.display = 'block';
+        successAlert.style.display = 'none';
+    }
+
+    function showSuccess(message) {
+        console.log('Success:', message);
+        successAlert.textContent = message;
+        successAlert.style.display = 'block';
+        errorAlert.style.display = 'none';
+    }
+
+    buscarDniBtn.addEventListener('click', function() {
+        const dni = dniInput.value.trim();
+        if (!dni) {
+            showError('Por favor, ingrese un DNI');
+            return;
+        }
+
+        if (dni.length !== 8) {
+            showError('El DNI debe tener 8 dígitos');
+            return;
+        }
+
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        console.log('Buscando DNI:', dni);
+
+        fetch('{% url "buscar_cliente_por_dni" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: new URLSearchParams({
+                'dni': dni
+            })
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+
+            if (data.error) {
+                showError(data.error);
+                if (data.detail) {
+                    console.error('Detail:', data.detail);
+                }
+                return;
+            }
+
+            // Directly populate fields from the returned data
+            if (data.nombre) {
+                nombreInput.value = data.nombre;
+            }
+            if (data.email) {
+                emailInput.value = data.email;
+            }
+            if (data.telefono) {
+                telefonoInput.value = data.telefono;
+            }
+            if (data.direccion) {
+                direccionInput.value = data.direccion;
+            }
+            if (data.categoria) {
+                categoriaInput.value = data.categoria;
+            }
+            if (data.estado) {
+                estadoInput.value = data.estado;
+            }
+            showSuccess('Datos encontrados correctamente');
+        })
+        .catch(error => {
+            console.error('Error en la petición:', error);
+            showError('Error al buscar el DNI');
+        });
+    });
+
+    clienteForm.addEventListener('submit', function(event) {
+        // No need to prevent default form submission
+        // The form will be submitted to the server and handled by Django
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'chat/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Registrar Oportunidad</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="cliente" class="form-label">Cliente</label>
+            <select id="cliente" name="cliente" class="form-select" required>
+                {% for cliente in clientes %}
+                    <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea id="descripcion" name="descripcion" class="form-control" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="valor" class="form-label">Valor</label>
+            <input type="number" id="valor" name="valor" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="estado" class="form-label">Estado</label>
+            <select id="estado" name="estado" class="form-select" required>
+                <option value="prospecto">Prospecto</option>
+                <option value="negociacion">En Negociación</option>
+                <option value="cerrado">Cerrado</option>
+                <option value="seguimiento">Seguimiento</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Registrar</button>
+    <a href="{% url 'lista_oportunidades' %}" class="btn btn-danger mb-3">cancelar</a>
+
+    </form>
+</div>
+{% endblock %}

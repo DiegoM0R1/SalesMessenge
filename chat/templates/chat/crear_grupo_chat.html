@@ -1,0 +1,16 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Crear Grupo de Chat{% endblock %}
+
+{% block page_title %}Crear Grupo de Chat{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Crear Grupo de Chat</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Crear Grupo</button>
+    </form>
+</div>
+{% endblock %}

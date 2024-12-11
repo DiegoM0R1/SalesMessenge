@@ -1,0 +1,21 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Detalle de la Cotización{% endblock %}
+
+{% block page_title %}Detalle de la Cotización{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Detalle de la Cotización</h1>
+    <p><strong>Oportunidad:</strong> {{ cotizacion.oportunidad.cliente.nombre }}</p>
+    <p><strong>Descripción:</strong> {{ cotizacion.descripcion }}</p>
+    <p><strong>Valor:</strong> {{ cotizacion.valor }}</p>
+    <p><strong>Fecha de Envío:</strong> {{ cotizacion.fecha_envio }}</p>
+    <p><strong>Estado:</strong> {{ cotizacion.estado }}</p>
+    <a href="{% url 'editar_cotizacion' cotizacion.id %}" class="btn btn-primary">Editar</a>
+    <form action="{% url 'eliminar_cotizacion' cotizacion.id %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+    </form>
+</div>
+{% endblock %}

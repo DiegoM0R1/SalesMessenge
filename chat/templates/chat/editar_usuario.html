@@ -1,0 +1,50 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Editar Usuario{% endblock %}
+
+{% block page_title %}Editar Usuario{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Editar Usuario</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ usuario.nombre }}" required>
+        </div>
+        <div class="form-group">
+            <label for="apellido">Apellido</label>
+            <input type="text" class="form-control" id="apellido" name="apellido" value="{{ usuario.apellido }}" required>
+        </div>
+        <div class="form-group">
+            <label for="codigo">Código</label>
+            <input type="text" class="form-control" id="codigo" name="codigo" value="{{ usuario.codigo }}" required>
+        </div>
+        <div class="form-group">
+            <label for="direccion">Dirección</label>
+            <input type="text" class="form-control" id="direccion" name="direccion" value="{{ usuario.direccion }}" required>
+        </div>
+        <div class="form-group">
+            <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ usuario.fecha_nacimiento|date:'Y-m-d' }}" required>
+        </div>
+        <div class="form-group">
+            <label for="nombre_usuario">Nombre de Usuario</label>
+            <input type="text" class="form-control" id="nombre_usuario" name="nombre_usuario" value="{{ usuario.nombre_usuario }}" required>
+        </div>
+        <div class="form-group">
+            <label for="contrasena">Contraseña</label>
+            <input type="password" class="form-control" id="contrasena" name="contrasena" value="{{ usuario.contrasena }}" required>
+        </div>
+        <div class="form-group">
+            <label for="tipo_usuario">Tipo de Usuario</label>
+            <select class="form-control" id="tipo_usuario" name="tipo_usuario" required>
+                <option value="admin" {% if usuario.tipo_usuario == 'admin' %}selected{% endif %}>Administrador</option>
+                <option value="trabajador" {% if usuario.tipo_usuario == 'trabajador' %}selected{% endif %}>Trabajador de área</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    </form>
+</div>
+{% endblock %}

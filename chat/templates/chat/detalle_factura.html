@@ -1,0 +1,16 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Detalle de la Factura{% endblock %}
+
+{% block page_title %}Detalle de la Factura{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Detalle de la Factura</h1>
+    <p><strong>Cliente:</strong> {{ factura.cliente.nombre }}</p>
+    <p><strong>Total:</strong> {{ factura.total }}</p>
+    <p><strong>Fecha de Emisión:</strong> {{ factura.fecha_emision }}</p>
+    <p><strong>Estado:</strong> {{ factura.estado }}</p>
+    <a href="{% url 'registrar_venta' factura.id %}" class="btn btn-primary">Registrar Venta</a>
+</div>
+{% endblock %}

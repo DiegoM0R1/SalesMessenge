@@ -1,0 +1,49 @@
+{% extends 'chat/base.html' %}
+
+{% block title %}Lista de Clientes{% endblock %}
+
+{% block page_title %}Lista de Clientes{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Lista de Clientes</h1>
+    <a href="{% url 'registrar_cliente' %}" class="btn btn-primary mb-3">Registrar Cliente</a>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered table-custom">
+            <thead class="thead-dark">
+                <tr>
+                    <th>DNI</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Categoría</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                    <tr>
+                        <td>{{ cliente.dni }}</td>
+                        <td>{{ cliente.nombre }}</td>
+                        <td>{{ cliente.email }}</td>
+                        <td>{{ cliente.telefono }}</td>
+                        <td>{{ cliente.direccion }}</td>
+                        <td>{{ cliente.categoria }}</td>
+                        <td>{{ cliente.estado }}</td>
+                        <td>
+                            <a href="{% url 'detalle_cliente' cliente.id %}" class="btn btn-info btn-sm">Ver</a>
+                            <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-primary btn-sm">Editar</a>
+                            <form action="{% url 'eliminar_cliente' cliente.id %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
