@@ -1,4 +1,4 @@
-# Estudio Tesen
+# SalesMessenge
 
 **Estudio Tesen** es una plataforma de gestión para usuarios, clientes, oportunidades de negocio, cotizaciones, cobranzas, y más. Este proyecto está desarrollado con Django y tiene como objetivo facilitar la administración de clientes y su ciclo de ventas, desde la creación de oportunidades hasta la gestión de facturas y cobranzas.
 
