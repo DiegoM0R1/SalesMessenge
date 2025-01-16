@@ -95,4 +95,4 @@ jobs:
 
       - name: 'Print deployment logs'
         run: |
-          curl -s https://intercomercioestudio-a4f0chc7f8hucde2.scm.canadacentral-01.azurewebsites.net/api/deployments/temp-1b629980/log
+          curl -s https://intercomercioestudio-a4f0chc7f8hucde2.scm.canadacentral-01.azurewebsites.net/api/deployments/${{ steps.deploy-to-webapp.outputs.deployment-id }}/log
