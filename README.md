@@ -25,8 +25,8 @@
 1. **Clona este repositorio**:
 
     ```bash
-    git clone https://github.com/tuusuario/estudio-tesen.git
-    cd estudio-tesen
+    git clone https://github.com/DiegoM0R1/SalesMessenge.git
+    cd SalesMessenge
     ```
 
 2. **Crea un entorno virtual**:
