@@ -12,5 +12,7 @@ import os
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'estudio_tesen.settings')
+# Ejecutar collectstatic
+call_command('collectstatic', verbosity=0, interactive=False)
 
 application = get_wsgi_application()

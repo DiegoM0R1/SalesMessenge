@@ -33,12 +33,13 @@ body {
 .logo {
     width: 80%;
     height: 80%;
-    background-image: url("../imagenes/logo_empresa.png");
+    background-image: url("{% static 'imagenes/logo_empresa.png' %}");
     background-size: contain;
     position: absolute;
     right: 300px;
     bottom: 200px;
 }
+
 
 .container-custom {
     background-color: rgb(0, 0, 0);
