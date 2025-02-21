@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-^th$aamvc4*5*gg*0upj$ovfq^&d1kq1m0yu-sm(b)spmm@m(n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'salesmessenge.onrender.com',
+    'localhost',
+    '127.0.0.1'
+]
 
 
 # Application definition
