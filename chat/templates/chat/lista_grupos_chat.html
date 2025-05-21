@@ -3,22 +3,789 @@
 {% block title %}Lista de Grupos de Chat{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1>Lista de Grupos de Chat</h1>
-    <a href="{% url 'crear_grupo_chat' %}" class="btn btn-primary mb-3">Crear Grupo</a>
-    <ul class="list-group">
-        {% for grupo in grupos %}
-            <li class="list-group-item">
-                <a href="{% url 'chat_grupo' grupo.id %}">{{ grupo.nombre }}</a>
-                <div>
-                    <a href="{% url 'editar_grupo_chat' grupo.id %}" class="btn btn-primary btn-sm">Editar</a>
-                    <form action="{% url 'eliminar_grupo_chat' grupo.id %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                    </form>
+<div class="grupos-chat-container animate__animated animate__fadeIn">
+    <div class="section-header mb-4">
+        <h1 class="display-5 text-gradient">Grupos de Chat</h1>
+        <div class="header-line"></div>
+    </div>
+    
+    <div class="grupos-actions mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+        <a href="{% url 'crear_grupo_chat' %}" class="btn-create-group">
+            <div class="btn-icon">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <span>Crear Nuevo Grupo</span>
+        </a>
+        
+        <div class="search-filter">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control border-start-0 ps-0" id="filterGrupos" 
+                       placeholder="Buscar grupo..." aria-label="Buscar grupo">
+            </div>
+        </div>
+    </div>
+    
+    <div class="grupos-stats-row animate__animated animate__fadeInUp animate__delay-2s">
+        <div class="stat-pill">
+            <i class="bi bi-chat-square-dots-fill"></i>
+            <span>Total de grupos: <strong>{{ grupos|length }}</strong></span>
+        </div>
+        <div class="stat-pill">
+            <i class="bi bi-people-fill"></i>
+            <span>Miembros activos: <strong>42</strong></span>
+        </div>
+        <div class="stat-pill">
+            <i class="bi bi-chat-dots-fill"></i>
+            <span>Mensajes hoy: <strong>158</strong></span>
+        </div>
+    </div>
+    
+    <div class="grupos-wrapper">
+        <div class="grupos-list">
+            {% if grupos %}
+                {% for grupo in grupos %}
+                <div class="grupo-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter|divisibleby:3 }}00ms">
+                    <div class="grupo-card-inner">
+                        <div class="grupo-avatar">
+                            <div class="grupo-icon">
+                                {% if forloop.counter|divisibleby:4 %}
+                                    <i class="bi bi-briefcase-fill"></i>
+                                {% elif forloop.counter|divisibleby:3 %}
+                                    <i class="bi bi-stars"></i>
+                                {% elif forloop.counter|divisibleby:2 %}
+                                    <i class="bi bi-layers-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-people-fill"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="grupo-info">
+                            <h3 class="grupo-nombre">{{ grupo.nombre }}</h3>
+                            <div class="grupo-meta">
+                                <span class="grupo-members">
+                                    <i class="bi bi-person-fill"></i> {{ grupo.miembros.count|default:"0" }} miembros
+                                </span>
+                                <span class="grupo-activity">
+                                    <i class="bi bi-clock-fill"></i> Último mensaje: 
+                                    {% if forloop.counter|divisibleby:2 %}hace 10 min{% else %}hace 2 horas{% endif %}
+                                </span>
+                            </div>
+                            <div class="grupo-chips">
+                                {% if forloop.counter|divisibleby:3 %}
+                                <span class="chip proyecto">Proyecto</span>
+                                {% elif forloop.counter|divisibleby:2 %}
+                                <span class="chip departamento">Departamento</span>
+                                {% else %}
+                                <span class="chip general">General</span>
+                                {% endif %}
+                                
+                                {% if forloop.counter|divisibleby:2 %}
+                                <span class="chip-status activo">Activo</span>
+                                {% else %}
+                                <span class="chip-status inactivo">Inactivo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="grupo-preview">
+                            <div class="avatar-stack">
+                                <div class="avatar-mini" style="background-color: #3498db;"><span>JD</span></div>
+                                <div class="avatar-mini" style="background-color: #9b59b6;"><span>AM</span></div>
+                                <div class="avatar-mini" style="background-color: #e74c3c;"><span>LT</span></div>
+                                {% if grupo.miembros.count|default:3 > 3 %}
+                                <div class="avatar-mini more"><span>+{{ grupo.miembros.count|default:5|add:"-3" }}</span></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="grupo-actions">
+                            <a href="{% url 'chat_grupo' grupo.id %}" class="btn-action chat">
+                                <i class="bi bi-chat-dots-fill"></i>
+                                <span>Chat</span>
+                            </a>
+                            <div class="dropdown">
+                                <button class="btn-action more" type="button" id="dropdownMenu{{ grupo.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenu{{ grupo.id }}">
+                                    <li><a class="dropdown-item" href="{% url 'editar_grupo_chat' grupo.id %}">
+                                        <i class="bi bi-pencil-fill me-2"></i> Editar grupo
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="showDeleteModal('{{ grupo.id }}', '{{ grupo.nombre }}')">
+                                        <i class="bi bi-trash-fill me-2"></i> Eliminar grupo
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-envelope-fill me-2"></i> Enviar notificación
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-person-plus-fill me-2"></i> Añadir miembros
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-wave"></div>
                 </div>
-            </li>
-        {% endfor %}
-    </ul>
+                {% endfor %}
+            {% else %}
+                <div class="no-grupos animate__animated animate__fadeIn">
+                    <div class="no-grupos-icon">
+                        <i class="bi bi-chat-square-x"></i>
+                    </div>
+                    <h3>No hay grupos de chat</h3>
+                    <p>Crea un grupo para comenzar a chatear con tu equipo</p>
+                    <a href="{% url 'crear_grupo_chat' %}" class="btn-create-empty">Crear primer grupo</a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div id="no-results" class="text-center py-4 d-none">
+            <i class="bi bi-emoji-frown display-1 text-muted"></i>
+            <p class="mt-3 fs-5">No se encontraron grupos que coincidan con la búsqueda</p>
+            <button class="btn btn-outline-secondary" onclick="document.getElementById('filterGrupos').value = ''; filterGrupos();">
+                <i class="bi bi-arrow-counterclockwise me-2"></i>Mostrar todos
+            </button>
+        </div>
+    </div>
 </div>
+
+<!-- Modal de eliminación -->
+<div class="modal fade" id="deleteGrupoModal" tabindex="-1" aria-labelledby="deleteGrupoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteGrupoModalLabel">Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-icon">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <p>¿Estás seguro que deseas eliminar el grupo <strong id="grupoNombre"></strong>?</p>
+                <p class="text-muted">Esta acción no se puede deshacer. Todos los mensajes y archivos compartidos en este grupo se perderán permanentemente.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteGrupoForm" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar permanentemente</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        --secondary-gradient: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+        --card-radius: 16px;
+        --card-shadow-light: 0 10px 20px rgba(0, 0, 0, 0.05);
+        --card-shadow-dark: 0 10px 20px rgba(0, 0, 0, 0.2);
+        --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Contenedor principal */
+    .grupos-chat-container {
+        padding: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Estilos del encabezado */
+    .section-header {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .text-gradient {
+        background-image: var(--primary-gradient);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .header-line {
+        height: 4px;
+        width: 80px;
+        background: var(--primary-gradient);
+        border-radius: 2px;
+        margin-top: 0.5rem;
+    }
+
+    /* Fila de acciones */
+    .grupos-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Botón de crear grupo */
+    .btn-create-group {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1.25rem;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s var(--transition-bounce);
+    }
+
+    .btn-create-group:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.75rem;
+    }
+
+    /* Campo de búsqueda */
+    .search-filter {
+        flex-grow: 1;
+        max-width: 400px;
+    }
+
+    .search-filter .input-group {
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .search-filter .form-control,
+    .search-filter .input-group-text {
+        border-color: #ced4da;
+        background-color: var(--light-bg);
+    }
+
+    body.dark-mode .search-filter .form-control,
+    body.dark-mode .search-filter .input-group-text {
+        border-color: #495057;
+        background-color: #343a40;
+        color: var(--light-text);
+    }
+
+    /* Fila de estadísticas */
+    .grupos-stats-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-pill {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background-color: rgba(52, 152, 219, 0.1);
+        border-radius: 30px;
+        font-size: 0.9rem;
+    }
+
+    body.dark-mode .stat-pill {
+        background-color: rgba(52, 152, 219, 0.2);
+    }
+
+    .stat-pill i {
+        margin-right: 0.5rem;
+        color: #3498db;
+    }
+
+    /* Lista de grupos */
+    .grupos-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* Tarjeta de grupo */
+    .grupo-card {
+        position: relative;
+        border-radius: var(--card-radius);
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    body.light-mode .grupo-card {
+        background-color: white;
+        box-shadow: var(--card-shadow-light);
+    }
+
+    body.dark-mode .grupo-card {
+        background-color: #2d3436;
+        box-shadow: var(--card-shadow-dark);
+    }
+
+    .grupo-card:hover {
+        transform: translateY(-5px);
+    }
+
+    body.light-mode .grupo-card:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .grupo-card:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .grupo-card-inner {
+        padding: 1.5rem;
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas:
+            "avatar info info"
+            "avatar info info"
+            "avatar preview preview"
+            "actions actions actions";
+        gap: 1rem;
+    }
+
+    /* Avatar del grupo */
+    .grupo-avatar {
+        grid-area: avatar;
+        align-self: start;
+    }
+
+    .grupo-icon {
+        width: 64px;
+        height: 64px;
+        background: var(--primary-gradient);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s;
+    }
+
+    .grupo-card:hover .grupo-icon {
+        transform: scale(1.05);
+    }
+
+    /* Información del grupo */
+    .grupo-info {
+        grid-area: info;
+    }
+
+    .grupo-nombre {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .grupo-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.7;
+        font-size: 0.9rem;
+    }
+
+    .grupo-meta i {
+        margin-right: 0.35rem;
+    }
+
+    /* Chips de categoría */
+    .grupo-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .chip {
+        display: inline-block;
+        padding: 0.2rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .chip.proyecto {
+        background-color: rgba(52, 152, 219, 0.15);
+        color: #3498db;
+    }
+
+    .chip.departamento {
+        background-color: rgba(155, 89, 182, 0.15);
+        color: #9b59b6;
+    }
+
+    .chip.general {
+        background-color: rgba(46, 204, 113, 0.15);
+        color: #2ecc71;
+    }
+
+    body.dark-mode .chip.proyecto {
+        background-color: rgba(52, 152, 219, 0.25);
+    }
+
+    body.dark-mode .chip.departamento {
+        background-color: rgba(155, 89, 182, 0.25);
+    }
+
+    body.dark-mode .chip.general {
+        background-color: rgba(46, 204, 113, 0.25);
+    }
+
+    .chip-status {
+        display: inline-block;
+        padding: 0.2rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .chip-status.activo {
+        background-color: rgba(46, 204, 113, 0.15);
+        color: #2ecc71;
+    }
+
+    .chip-status.inactivo {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: #e74c3c;
+    }
+
+    body.dark-mode .chip-status.activo {
+        background-color: rgba(46, 204, 113, 0.25);
+    }
+
+    body.dark-mode .chip-status.inactivo {
+        background-color: rgba(231, 76, 60, 0.25);
+    }
+
+    /* Previsualización del grupo */
+    .grupo-preview {
+        grid-area: preview;
+    }
+
+    /* Stack de avatares */
+    .avatar-stack {
+        display: flex;
+        margin-left: 0.5rem;
+    }
+
+    .avatar-mini {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.75rem;
+        margin-left: -0.75rem;
+        border: 2px solid;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    body.light-mode .avatar-mini {
+        border-color: white;
+    }
+
+    body.dark-mode .avatar-mini {
+        border-color: #2d3436;
+    }
+
+    .avatar-mini.more {
+        background-color: #95a5a6;
+    }
+
+    /* Acciones del grupo */
+    .grupo-actions {
+        grid-area: actions;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+    }
+
+    .btn-action {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 30px;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+    }
+
+    .btn-action.chat {
+        background: var(--primary-gradient);
+        color: white;
+        font-weight: 500;
+    }
+
+    .btn-action.chat i {
+        margin-right: 0.5rem;
+    }
+
+    .btn-action.chat:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    .btn-action.more {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        padding: 0;
+    }
+
+    .btn-action.more:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .btn-action.more:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Efecto de onda */
+    .card-wave {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        background: var(--primary-gradient);
+        opacity: 0.05;
+        clip-path: polygon(0 100%, 100% 100%, 100% 50%, 75% 0, 25% 0, 0 50%);
+        transition: all 0.5s;
+    }
+
+    /* Estado sin grupos */
+    .no-grupos {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 3rem 0;
+    }
+
+    .no-grupos-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #95a5a6;
+        opacity: 0.5;
+    }
+
+    .no-grupos p {
+        max-width: 400px;
+        margin: 0 auto 1.5rem;
+        opacity: 0.7;
+    }
+
+    .btn-create-empty {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s var(--transition-bounce);
+    }
+
+    .btn-create-empty:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    /* Modal personalizado */
+    .delete-icon {
+        font-size: 3rem;
+        color: #e74c3c;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    body.dark-mode .modal-content {
+        background-color: #2d3436;
+        color: var(--light-text);
+    }
+
+    body.dark-mode .modal-header,
+    body.dark-mode .modal-footer {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Dropdown personalizado */
+    body.light-mode .dropdown-menu {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .dropdown-menu {
+        background-color: #343a40;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    body.dark-mode .dropdown-item {
+        color: var(--light-text);
+    }
+
+    body.dark-mode .dropdown-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    body.dark-mode .dropdown-divider {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Mensaje de no resultados */
+    #no-results {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s;
+    }
+
+    #no-results.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    /* Ajustes responsive */
+    @media (max-width: 768px) {
+        .grupos-list {
+            grid-template-columns: 1fr;
+        }
+        
+        .grupos-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .search-filter {
+            max-width: 100%;
+        }
+        
+        .grupo-card-inner {
+            grid-template-columns: auto 1fr;
+            grid-template-areas:
+                "avatar info"
+                "preview preview"
+                "actions actions";
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtrado de grupos
+        const filterInput = document.getElementById('filterGrupos');
+        const grupoCards = document.querySelectorAll('.grupo-card');
+        const noResults = document.getElementById('no-results');
+        
+        window.filterGrupos = function() {
+            const searchTerm = filterInput.value.toLowerCase().trim();
+            let matchCount = 0;
+            
+            grupoCards.forEach(card => {
+                const groupName = card.querySelector('.grupo-nombre').textContent.toLowerCase();
+                const groupType = card.querySelector('.chip') ? card.querySelector('.chip').textContent.toLowerCase() : '';
+                
+                if (groupName.includes(searchTerm) || groupType.includes(searchTerm)) {
+                    card.style.display = '';
+                    // Aplicar animación al mostrar
+                    card.classList.remove('animate__fadeOutDown');
+                    card.classList.add('animate__fadeInUp');
+                    matchCount++;
+                } else {
+                    // Animación al ocultar
+                    card.classList.remove('animate__fadeInUp');
+                    card.classList.add('animate__fadeOutDown');
+                    setTimeout(() => {
+                        if (searchTerm) { // Solo ocultar si hay búsqueda activa
+                            card.style.display = 'none';
+                        }
+                    }, 500);
+                }
+            });
+            
+            if (searchTerm && matchCount === 0) {
+                noResults.classList.remove('d-none');
+                noResults.classList.add('show');
+            } else {
+                noResults.classList.add('d-none');
+                noResults.classList.remove('show');
+            }
+        };
+        
+        if (filterInput) {
+            filterInput.addEventListener('input', filterGrupos);
+        }
+        
+        // Función para mostrar el modal de eliminación
+        window.showDeleteModal = function(grupoId, grupoNombre) {
+            const modal = document.getElementById('deleteGrupoModal');
+            const form = document.getElementById('deleteGrupoForm');
+            const nombreSpan = document.getElementById('grupoNombre');
+            
+            form.action = `{% url 'eliminar_grupo_chat' 0 %}`.replace('0', grupoId);
+            nombreSpan.textContent = grupoNombre;
+            
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+        };
+        
+        // Efectos visuales para las tarjetas
+        grupoCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const wave = this.querySelector('.card-wave');
+                wave.style.opacity = '0.1';
+                wave.style.height = '60px';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                const wave = this.querySelector('.card-wave');
+                wave.style.opacity = '0.05';
+                wave.style.height = '40px';
+            });
+        });
+        
+        // Animación para el botón de crear grupo
+        const createBtn = document.querySelector('.btn-create-group');
+        if (createBtn) {
+            createBtn.addEventListener('mouseenter', function() {
+                this.querySelector('.btn-icon').style.transform = 'rotate(15deg)';
+            });
+            
+            createBtn.addEventListener('mouseleave', function() {
+                this.querySelector('.btn-icon').style.transform = 'rotate(0deg)';
+            });
+        }
+    });
+</script>
 {% endblock %}

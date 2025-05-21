@@ -3,37 +3,535 @@
 {% block title %}Usuarios{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mt-4">Usuarios</h1>
+<div class="container mt-4 usuarios-container animate__animated animate__fadeIn">
+    <div class="section-header mb-4">
+        <h1 class="display-5 text-gradient">Usuarios</h1>
+        <div class="header-line"></div>
+    </div>
+    <a href="{% url 'lista_grupos_chat' %}" class="btn btn-custom btn-secondary-gradient ms-3">
+            <i class="bi bi-people-fill me-2"></i>Grupos
+        </a>
     {% if usuario_actual.tipo_usuario == 'admin' %}
-        <a href="{% url 'registrar_usuario' %}" class="btn btn-primary mb-3">Registrar Usuario</a>
-        <a href="{% url 'lista_grupos_chat' %}" class="btn btn-primary mb-3">Grupos</a>
-
+    <div class="action-buttons mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+        <a href="{% url 'registrar_usuario' %}" class="btn btn-custom btn-primary-gradient">
+            <i class="bi bi-person-plus-fill me-2"></i>Registrar Usuario
+        </a>
+        <a href="{% url 'lista_grupos_chat' %}" class="btn btn-custom btn-secondary-gradient ms-3">
+            <i class="bi bi-people-fill me-2"></i>Grupos
+        </a>
+    </div>
     {% endif %}
-    <ul class="list-group">
-        {% for usuario in usuarios %}
-            <li class="list-group-item d-flex justify-content-between align-items-center usuario-item">
-                <span class="d-flex align-items-center">
-                    {% if usuario.foto_perfil %}
-                        <img src="{{ usuario.foto_perfil.url }}" alt="Foto de Perfil" class="foto-perfil">
-                    {% else %}
-                        <i class="bi bi-person-circle"></i>
-                    {% endif %}
-                    <a href="{% url 'chat' usuario.id %}" class="usuario-link ml-2">{{ usuario.nombre_usuario }} ({{ usuario.get_tipo_usuario_display }})</a>
+    
+    <div class="usuarios-wrapper">
+        <div class="search-filter mb-4">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0">
+                    <i class="bi bi-search"></i>
                 </span>
-                <div>
-                    {% if usuario_actual.tipo_usuario == 'admin' %}
-                        <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-primary btn-sm">Editar</a>
-                        <form action="{% url 'eliminar_usuario' usuario.id %}" method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                        </form>
-                    {% endif %}
+                <input type="text" class="form-control border-start-0 ps-0" id="filterUsuarios" 
+                       placeholder="Buscar usuario..." aria-label="Buscar usuario">
+            </div>
+        </div>
+        
+        <ul class="usuarios-list">
+            {% for usuario in usuarios %}
+            <li class="usuario-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter|divisibleby:3 }}00ms">
+                <div class="usuario-content">
+                    <div class="usuario-avatar">
+                        {% if usuario.foto_perfil %}
+                        <img src="{{ usuario.foto_perfil.url }}" alt="Foto de Perfil" class="avatar-img">
+                        {% else %}
+                        <div class="avatar-placeholder">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        {% endif %}
+                        <span class="status-indicator {% if usuario.id|divisibleby:2 %}online{% else %}offline{% endif %}"></span>
+                    </div>
+                    <div class="usuario-info">
+                        <h4 class="usuario-nombre">{{ usuario.nombre_usuario }}</h4>
+                        <span class="usuario-tipo">{{ usuario.get_tipo_usuario_display }}</span>
+                        <p class="usuario-estado">
+                            {% if usuario.id|divisibleby:2 %}
+                            <span class="text-success"><i class="bi bi-circle-fill me-1"></i>En línea</span>
+                            {% else %}
+                            <span class="text-secondary"><i class="bi bi-circle me-1"></i>Desconectado</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="usuario-actions">
+                        <a href="{% url 'chat' usuario.id %}" class="btn btn-chat">
+                            <i class="bi bi-chat-dots-fill"></i>
+                            <span>Chat</span>
+                        </a>
+                        {% if usuario_actual.tipo_usuario == 'admin' %}
+                        <div class="admin-actions">
+                            <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-edit">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                            <form action="{% url 'eliminar_usuario' usuario.id %}" method="post" class="delete-form">
+                                {% csrf_token %}
+                                <button type="button" class="btn btn-delete" onclick="confirmarEliminacion(this.form)">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
+                <div class="card-wave"></div>
             </li>
-        {% endfor %}
-    </ul>
+            {% endfor %}
+        </ul>
+        
+        <div id="no-results" class="text-center py-4 d-none">
+            <i class="bi bi-emoji-frown display-1 text-muted"></i>
+            <p class="mt-3 fs-5">No se encontraron usuarios que coincidan con la búsqueda</p>
+        </div>
+    </div>
 </div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos para la página de usuarios */
+    :root {
+        --primary-gradient: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        --secondary-gradient: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+        --card-radius: 12px;
+        --card-shadow-light: 0 8px 20px rgba(0, 0, 0, 0.05);
+        --card-shadow-dark: 0 8px 20px rgba(0, 0, 0, 0.25);
+        --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Estilos del encabezado */
+    .section-header {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .text-gradient {
+        background-image: var(--primary-gradient);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .header-line {
+        height: 4px;
+        width: 80px;
+        background: var(--primary-gradient);
+        border-radius: 2px;
+        margin-top: 8px;
+    }
+
+    /* Botones personalizados */
+    .btn-custom {
+        padding: 0.6rem 1.5rem;
+        border-radius: 30px;
+        font-weight: 600;
+        border: none;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s var(--transition-bounce);
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-primary-gradient {
+        background-image: var(--primary-gradient);
+        color: white;
+    }
+
+    .btn-secondary-gradient {
+        background-image: var(--secondary-gradient);
+        color: white;
+    }
+
+    /* Campo de búsqueda personalizado */
+    .search-filter .input-group {
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+    }
+
+    .search-filter .input-group:focus-within {
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+    }
+
+    .search-filter .form-control,
+    .search-filter .input-group-text {
+        border-color: #ced4da;
+        background-color: var(--light-bg);
+    }
+
+    body.dark-mode .search-filter .form-control,
+    body.dark-mode .search-filter .input-group-text {
+        border-color: #495057;
+        background-color: #343a40;
+        color: var(--light-text);
+    }
+
+    /* Tarjeta de usuario */
+    .usuarios-list {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .usuario-card {
+        position: relative;
+        border-radius: var(--card-radius);
+        overflow: hidden;
+        transition: all 0.3s;
+        height: 100%;
+    }
+
+    body.light-mode .usuario-card {
+        background-color: white;
+        box-shadow: var(--card-shadow-light);
+    }
+
+    body.dark-mode .usuario-card {
+        background-color: #2d3436;
+        box-shadow: var(--card-shadow-dark);
+    }
+
+    .usuario-card:hover {
+        transform: translateY(-5px);
+    }
+
+    body.light-mode .usuario-card:hover {
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .usuario-card:hover {
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .usuario-content {
+        padding: 1.5rem;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    /* Avatar de usuario */
+    .usuario-avatar {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin-bottom: 1rem;
+    }
+
+    .avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid var(--secondary-color);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-gradient);
+        border-radius: 50%;
+        color: white;
+        font-size: 2rem;
+    }
+
+    .usuario-card:hover .avatar-img,
+    .usuario-card:hover .avatar-placeholder {
+        transform: scale(1.05);
+    }
+
+    .status-indicator {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-indicator.online {
+        background-color: #2ecc71;
+    }
+
+    .status-indicator.offline {
+        background-color: #95a5a6;
+    }
+
+    /* Información del usuario */
+    .usuario-info {
+        flex-grow: 1;
+        margin-bottom: 1rem;
+    }
+
+    .usuario-nombre {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .usuario-tipo {
+        display: inline-block;
+        padding: 0.2rem 0.75rem;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .usuario-estado {
+        margin-top: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    /* Botones de acción */
+    .usuario-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+    }
+
+    .btn-chat {
+        padding: 0.5rem 1.25rem;
+        border-radius: 20px;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+    }
+
+    .btn-chat:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+
+    .admin-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-edit, .btn-delete {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: all 0.3s;
+    }
+
+    .btn-edit {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+    }
+
+    body.dark-mode .btn-edit {
+        background-color: rgba(52, 152, 219, 0.2);
+    }
+
+    .btn-delete {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+    }
+
+    body.dark-mode .btn-delete {
+        background-color: rgba(231, 76, 60, 0.2);
+    }
+
+    .btn-edit:hover, .btn-delete:hover {
+        transform: scale(1.1);
+    }
+
+    /* Efecto de onda */
+    .card-wave {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        background: var(--primary-gradient);
+        opacity: 0.1;
+        clip-path: polygon(0 100%, 100% 100%, 100% 50%, 75% 0, 25% 0, 0 50%);
+    }
+
+    /* Mensaje sin resultados */
+    #no-results {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s;
+    }
+
+    #no-results.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Modal personalizado */
+    .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+        border: none;
+    }
+
+    body.dark-mode .modal-content {
+        background-color: #2d3436;
+        color: var(--light-text);
+    }
+
+    body.dark-mode .modal-header,
+    body.dark-mode .modal-footer {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animaciones adicionales */
+    @keyframes pulse-shadow {
+        0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+    }
+
+    .pulse-animation {
+        animation: pulse-shadow 2s infinite;
+    }
+
+    /* Ajustes responsive */
+    @media (max-width: 768px) {
+        .usuarios-list {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+        }
+        
+        .action-buttons .ms-3 {
+            margin-left: 0 !important;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtro de búsqueda en tiempo real
+        const filterInput = document.getElementById('filterUsuarios');
+        const usuariosList = document.querySelectorAll('.usuario-card');
+        const noResults = document.getElementById('no-results');
+        
+        filterInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let matchCount = 0;
+            
+            usuariosList.forEach(card => {
+                const userName = card.querySelector('.usuario-nombre').textContent.toLowerCase();
+                const userType = card.querySelector('.usuario-tipo').textContent.toLowerCase();
+                
+                if (userName.includes(searchTerm) || userType.includes(searchTerm)) {
+                    card.style.display = '';
+                    matchCount++;
+                    // Agregamos animación al mostrar
+                    card.classList.remove('animate__fadeOutDown');
+                    card.classList.add('animate__fadeInUp');
+                } else {
+                    // Animación al ocultar
+                    card.classList.remove('animate__fadeInUp');
+                    card.classList.add('animate__fadeOutDown');
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 500);
+                }
+            });
+            
+            if (matchCount === 0) {
+                noResults.classList.remove('d-none');
+                noResults.classList.add('show');
+            } else {
+                noResults.classList.add('d-none');
+                noResults.classList.remove('show');
+            }
+        });
+        
+        // Función para el modal de confirmación
+        window.confirmarEliminacion = function(form) {
+            const deleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+            deleteModal.show();
+            
+            document.getElementById('confirmDelete').onclick = function() {
+                form.submit();
+                deleteModal.hide();
+            };
+        };
+        
+        // Efectos de entrada escalonados
+        const cards = document.querySelectorAll('.usuario-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+        
+        // Efecto de hover en las tarjetas
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const wave = this.querySelector('.card-wave');
+                wave.style.transition = 'all 0.5s ease';
+                wave.style.opacity = '0.2';
+                wave.style.height = '60px';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                const wave = this.querySelector('.card-wave');
+                wave.style.opacity = '0.1';
+                wave.style.height = '40px';
+            });
+        });
+    });
+</script>
 {% endblock %}
-
-

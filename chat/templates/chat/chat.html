@@ -3,171 +3,898 @@
 {% block title %}Chat{% endblock %}
 
 {% block content %}
-
-
-<div class="chat-container">
+<div class="chat-container fade-in">
   <div class="chat-header">
-    <div class="profile-image">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-      </svg>
+    <div class="profile-image animate__animated animate__fadeIn">
+      {% if usuario.foto_perfil %}
+        <img src="{{ usuario.foto_perfil.url }}" alt="{{ usuario.nombre_usuario }}" class="user-avatar">
+      {% else %}
+        <div class="avatar-placeholder">
+          <i class="bi bi-person-fill"></i>
+        </div>
+      {% endif %}
     </div>
-    <div>
-      <h2 style="margin: 0;">{{ usuario.nombre_usuario }}</h2>
-      <small style="opacity: 0.8;">En línea</small>
+    <div class="user-info animate__animated animate__fadeIn">
+      <h2 class="chat-username">{{ usuario.nombre_usuario }}</h2>
+      <div class="status-indicator">
+        <span class="status-dot online"></span>
+        <small class="status-text">En línea</small>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="btn-icon" title="Videollamada">
+        <i class="bi bi-camera-video"></i>
+      </button>
+      <button class="btn-icon" title="Llamada">
+        <i class="bi bi-telephone"></i>
+      </button>
+      <button class="btn-icon d-md-none" id="chat-info-toggle" title="Información">
+        <i class="bi bi-info-circle"></i>
+      </button>
     </div>
   </div>
 
-  <div class="chat-box">
-    {% for mensaje in mensajes %}
-      <div class="mensaje {% if mensaje.emisor.nombre_usuario == request.user.username %}sent{% else %}received{% endif %}">
-        <div class="mensaje-header">
-          <span class="mensaje-sender">{{ mensaje.emisor.nombre }} {{ mensaje.emisor.apellido }}</span>
+  <div class="chat-body">
+    <div class="chat-messages" id="chat-box">
+      {% for mensaje in mensajes %}
+        <div class="message-wrapper {% if mensaje.emisor.nombre_usuario == request.user.username %}outgoing{% else %}incoming{% endif %} animate__animated animate__fadeIn">
+          <div class="message">
+            <div class="message-header">
+              <span class="message-sender">{{ mensaje.emisor.nombre }} {{ mensaje.emisor.apellido }}</span>
+            </div>
+            <div class="message-bubble">
+              {% if mensaje.contenido %}
+                <p class="message-text">{{ mensaje.contenido }}</p>
+              {% endif %}
+              
+              {% if mensaje.tipo == 'foto' %}
+                <div class="media-preview photo-preview">
+                  <img src="{{ mensaje.archivo.url }}" alt="Foto" class="media-image" loading="lazy">
+                </div>
+              {% elif mensaje.tipo == 'video' %}
+                <div class="media-preview video-preview">
+                  <video controls class="media-video">
+                    <source src="{{ mensaje.archivo.url }}" type="video/mp4">
+                    Tu navegador no soporta el elemento video.
+                  </video>
+                </div>
+              {% elif mensaje.tipo != 'texto' and mensaje.archivo %}
+                <div class="file-attachment">
+                  <div class="file-icon">
+                    <i class="bi bi-file-earmark"></i>
+                  </div>
+                  <div class="file-details">
+                    <span class="file-name">{{ mensaje.archivo.name|truncatechars:20 }}</span>
+                    <a href="{{ mensaje.archivo.url }}" class="download-link" download>
+                      <i class="bi bi-download"></i> Descargar
+                    </a>
+                  </div>
+                </div>
+              {% endif %}
+            </div>
+            <div class="message-footer">
+              <span class="message-time">{{ mensaje.fecha_hora|date:"H:i" }}</span>
+              {% if mensaje.emisor.nombre_usuario == request.user.username %}
+                <span class="message-status">
+                  <i class="bi bi-check2-all"></i>
+                </span>
+              {% endif %}
+            </div>
+          </div>
         </div>
-        <div class="mensaje-content">
-          {{ mensaje.contenido }}
-          {% if mensaje.tipo == 'foto' %}
-            <div class="archivo-preview">
-              <img src="{{ mensaje.archivo.url }}" alt="Foto" class="preview-image">
-            </div>
-          {% elif mensaje.tipo == 'video' %}
-            <div class="archivo-preview">
-              <video width="200" controls>
-                <source src="{{ mensaje.archivo.url }}" type="video/mp4">
-                Tu navegador no soporta el elemento video.
-              </video>
-            </div>
-          {% elif mensaje.tipo != 'texto' %}
-            <div class="archivo-preview">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                <polyline points="13 2 13 9 20 9"></polyline>
-              </svg>
-              <a href="{{ mensaje.archivo.url }}" target="_blank">{{ mensaje.archivo.name }}</a>
-            </div>
-          {% endif %}
+      {% empty %}
+        <div class="no-messages">
+          <div class="no-messages-icon">
+            <i class="bi bi-chat-square-text"></i>
+          </div>
+          <p>No hay mensajes aún. ¡Envía el primero!</p>
         </div>
-        <span class="mensaje-time">{{ mensaje.fecha_hora|date:"H:i" }}</span>
-      </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
   </div>
 
   <form method="post" enctype="multipart/form-data" class="chat-footer" id="chatForm">
     {% csrf_token %}
     {{ form.media }}
-    <div class="chat-input-container">
-      <div class="file-options">
-        <div class="file-option" data-type="foto">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-          <span>Foto</span>
-        </div>
-        <div class="file-option" data-type="video">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polygon points="23 7 16 12 23 17 23 7"></polygon>
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-          </svg>
-          <span>Video</span>
-        </div>
-        <div class="file-option" data-type="archivo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-            <polyline points="13 2 13 9 20 9"></polyline>
-          </svg>
-          <span>Documento</span>
+    
+    <div class="chat-toolbar">
+      <div class="emoji-picker-wrapper">
+        <button type="button" class="btn-icon emoji-toggle" id="emojiToggle">
+          <i class="bi bi-emoji-smile"></i>
+        </button>
+        <div class="emoji-picker" id="emojiPicker">
+          <div class="emoji-list">
+            <span class="emoji" data-emoji="😊">😊</span>
+            <span class="emoji" data-emoji="😂">😂</span>
+            <span class="emoji" data-emoji="❤️">❤️</span>
+            <span class="emoji" data-emoji="👍">👍</span>
+            <span class="emoji" data-emoji="🎉">🎉</span>
+            <span class="emoji" data-emoji="🔥">🔥</span>
+            <span class="emoji" data-emoji="👏">👏</span>
+            <span class="emoji" data-emoji="🤔">🤔</span>
+          </div>
         </div>
       </div>
 
-      <button type="button" class="attach-button" id="attachButton">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-        </svg>
+      <button type="button" class="btn-icon attachment-toggle" id="attachButton">
+        <i class="bi bi-paperclip"></i>
       </button>
+      
+      <div class="attachment-options" id="attachmentOptions">
+        <div class="attachment-option" data-type="foto">
+          <div class="option-icon">
+            <i class="bi bi-image"></i>
+          </div>
+          <span class="option-label">Foto</span>
+        </div>
+        <div class="attachment-option" data-type="video">
+          <div class="option-icon">
+            <i class="bi bi-camera-video"></i>
+          </div>
+          <span class="option-label">Video</span>
+        </div>
+        <div class="attachment-option" data-type="archivo">
+          <div class="option-icon">
+            <i class="bi bi-file-earmark"></i>
+          </div>
+          <span class="option-label">Documento</span>
+        </div>
+      </div>
+    </div>
 
+    <div class="chat-input-container">
       {{ form.tipo }}
       {{ form.archivo }}
       
-      <div id="filePreview" class="file-preview" style="display: none;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-          <polyline points="13 2 13 9 20 9"></polyline>
-        </svg>
-        <span id="fileName"></span>
+      <div id="filePreview" class="selected-file-preview">
+        <div class="preview-content">
+          <div class="preview-icon">
+            <i class="bi bi-file-earmark"></i>
+          </div>
+          <span id="fileName" class="preview-name"></span>
+        </div>
+        <button type="button" class="btn-icon remove-file" id="removeFile">
+          <i class="bi bi-x"></i>
+        </button>
       </div>
 
-      {{ form.contenido }}
-      
-      <button type="submit" class="send-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <line x1="22" y1="2" x2="11" y2="13"></line>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-        </svg>
-      </button>
+      <div class="input-wrapper">
+        {{ form.contenido }}
+        <button type="submit" class="send-button" id="sendButton">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
     </div>
   </form>
 </div>
 
+<style>
+  /* Chat Container */
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 160px);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.12);
+    background-color: var(--light-bg);
+    margin-bottom: 20px;
+  }
+
+  body.dark-mode .chat-container {
+    background-color: #2d3436;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Chat Header */
+  .chat-header {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-speed);
+  }
+  
+  body.dark-mode .chat-header {
+    background-color: #1e2224;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .profile-image {
+    margin-right: 12px;
+  }
+  
+  .user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--secondary-color);
+  }
+  
+  .avatar-placeholder {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: var(--secondary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+  
+  .user-info {
+    flex: 1;
+  }
+  
+  .chat-username {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  
+  .status-indicator {
+    display: flex;
+    align-items: center;
+  }
+  
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  
+  .status-dot.online {
+    background-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.25);
+  }
+  
+  .status-text {
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+  
+  .chat-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .btn-icon {
+    background: none;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #555;
+    font-size: 1.1rem;
+  }
+  
+  body.dark-mode .btn-icon {
+    color: #e0e0e0;
+  }
+  
+  .btn-icon:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+  }
+  
+  body.dark-mode .btn-icon:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Chat Body */
+  .chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #f5f7fb;
+    transition: all var(--transition-speed);
+  }
+  
+  body.dark-mode .chat-body {
+    background-color: #282f31;
+  }
+  
+  .chat-messages {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Messages */
+  .message-wrapper {
+    margin-bottom: 12px;
+    max-width: 80%;
+    display: flex;
+    flex-direction: column;
+    animation-duration: 0.3s;
+  }
+  
+  .message-wrapper.incoming {
+    align-self: flex-start;
+  }
+  
+  .message-wrapper.outgoing {
+    align-self: flex-end;
+  }
+  
+  .message {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .message-header {
+    padding: 0 12px 4px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+  
+  .message-bubble {
+    padding: 10px 15px;
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+    max-width: 100%;
+  }
+  
+  .incoming .message-bubble {
+    background-color: white;
+    border-bottom-left-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+  
+  .outgoing .message-bubble {
+    background-color: var(--secondary-color);
+    color: white;
+    border-bottom-right-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  }
+  
+  body.dark-mode .incoming .message-bubble {
+    background-color: #3a4144;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .message-text {
+    margin: 0;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  
+  .message-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 2px 12px;
+    font-size: 0.7rem;
+    opacity: 0.7;
+    gap: 5px;
+  }
+  
+  .message-status i {
+    font-size: 0.9rem;
+  }
+  
+  .outgoing .message-status i {
+    color: #4FC3F7;
+  }
+
+  /* Media Previews */
+  .media-preview {
+    margin-top: 8px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .media-image {
+    max-width: 250px;
+    max-height: 300px;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  
+  .media-image:hover {
+    transform: scale(1.02);
+  }
+  
+  .media-video {
+    max-width: 250px;
+    max-height: 180px;
+    display: block;
+  }
+
+  /* File Attachments */
+  .file-attachment {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 10px;
+    margin-top: 5px;
+  }
+  
+  body.dark-mode .file-attachment {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .file-icon {
+    font-size: 1.5rem;
+    margin-right: 12px;
+    color: var(--secondary-color);
+  }
+  
+  .file-details {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .file-name {
+    font-size: 0.85rem;
+    margin-bottom: 3px;
+  }
+  
+  .download-link {
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    color: var(--secondary-color);
+    text-decoration: none;
+  }
+  
+  .download-link i {
+    margin-right: 3px;
+  }
+
+  /* Chat Footer */
+  .chat-footer {
+    padding: 15px;
+    background-color: white;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all var(--transition-speed);
+  }
+  
+  body.dark-mode .chat-footer {
+    background-color: #1e2224;
+    border-top-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .chat-toolbar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  
+  .emoji-picker-wrapper {
+    position: relative;
+  }
+  
+  .emoji-picker {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 0;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
+    padding: 10px;
+    display: none;
+    width: 250px;
+    z-index: 10;
+  }
+  
+  body.dark-mode .emoji-picker {
+    background-color: #3a4144;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .emoji-picker.active {
+    display: block;
+    animation: fadeIn 0.3s;
+  }
+  
+  .emoji-list {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  
+  .emoji {
+    font-size: 1.3rem;
+    padding: 5px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+  }
+  
+  .emoji:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  body.dark-mode .emoji:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .attachment-options {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 40px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
+    padding: 10px;
+    display: none;
+    width: 220px;
+    z-index: 10;
+  }
+  
+  body.dark-mode .attachment-options {
+    background-color: #3a4144;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .attachment-options.active {
+    display: block;
+    animation: fadeIn 0.3s;
+  }
+  
+  .attachment-option {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .attachment-option:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  body.dark-mode .attachment-option:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .option-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(52, 152, 219, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    color: var(--secondary-color);
+    transition: transform 0.2s;
+  }
+  
+  .attachment-option:hover .option-icon {
+    transform: scale(1.1);
+  }
+  
+  .option-label {
+    font-size: 0.9rem;
+  }
+
+  /* File preview */
+  .selected-file-preview {
+    display: none;
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    animation: fadeIn 0.3s;
+    align-items: center;
+  }
+  
+  body.dark-mode .selected-file-preview {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .selected-file-preview.active {
+    display: flex;
+  }
+  
+  .preview-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+  
+  .preview-icon {
+    margin-right: 10px;
+    color: var(--secondary-color);
+  }
+  
+  .preview-name {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+  
+  .remove-file {
+    color: #e74c3c !important;
+  }
+
+  /* Input styles */
+  .chat-input-container {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 24px;
+    padding: 4px 6px 4px 16px;
+    transition: all 0.3s;
+  }
+  
+  body.dark-mode .input-wrapper {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .input-wrapper:focus-within {
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+  }
+  
+  #id_contenido {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    font-family: inherit;
+    max-height: 100px;
+    min-height: 20px;
+    resize: none;
+    outline: none !important;
+    color: inherit;
+  }
+  
+  #id_tipo, #id_archivo {
+    display: none;
+  }
+  
+  .send-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--secondary-color);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    margin-left: 8px;
+  }
+  
+  .send-button:hover {
+    transform: scale(1.05);
+    background-color: #2980b9;
+  }
+  
+  /* No messages */
+  .no-messages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    opacity: 0.7;
+    text-align: center;
+  }
+  
+  .no-messages-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: var(--secondary-color);
+    opacity: 0.6;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .chat-container {
+      height: calc(100vh - 140px);
+      margin: -15px -15px 0;
+      border-radius: 0;
+    }
+    
+    .message-wrapper {
+      max-width: 85%;
+    }
+    
+    .media-image, .media-video {
+      max-width: 200px;
+    }
+    
+    .emoji-picker, .attachment-options {
+      width: calc(100vw - 30px);
+      left: -15px;
+    }
+    
+    .emoji-list {
+      grid-template-columns: repeat(7, 1fr);
+    }
+    
+    .preview-name {
+      max-width: 150px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .chat-header {
+      padding: 10px 15px;
+    }
+    
+    .user-avatar, .avatar-placeholder {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .chat-username {
+      font-size: 1rem;
+    }
+    
+    .chat-body {
+      padding: 15px;
+    }
+    
+    .message-wrapper {
+      max-width: 90%;
+    }
+    
+    .media-image, .media-video {
+      max-width: 180px;
+    }
+  }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Scroll to bottom of chat
+    function scrollToBottom() {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    
+    // Elements
     const attachButton = document.getElementById('attachButton');
-    const fileOptions = document.querySelector('.file-options');
+    const attachmentOptions = document.getElementById('attachmentOptions');
     const fileInput = document.querySelector('input[name="archivo"]');
     const tipoInput = document.querySelector('select[name="tipo"]');
     const filePreview = document.getElementById('filePreview');
     const fileName = document.getElementById('fileName');
     const form = document.getElementById('chatForm');
-
-    // Mostrar/ocultar opciones de archivo
+    const removeFileBtn = document.getElementById('removeFile');
+    const emojiToggle = document.getElementById('emojiToggle');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const messageInput = document.getElementById('id_contenido');
+    const emojis = document.querySelectorAll('.emoji');
+    
+    // Scroll to bottom on page load
+    scrollToBottom();
+    
+    // Toggle attachment options
     attachButton.addEventListener('click', function(e) {
         e.stopPropagation();
-        fileOptions.classList.toggle('show');
+        attachmentOptions.classList.toggle('active');
+        // Close emoji picker if open
+        emojiPicker.classList.remove('active');
     });
-
-    // Cerrar opciones al hacer clic fuera
+    
+    // Toggle emoji picker
+    emojiToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        emojiPicker.classList.toggle('active');
+        // Close attachment options if open
+        attachmentOptions.classList.remove('active');
+    });
+    
+    // Insert emoji
+    emojis.forEach(emoji => {
+        emoji.addEventListener('click', function() {
+            const emojiChar = this.dataset.emoji;
+            
+            // Get cursor position
+            const start = messageInput.selectionStart;
+            const end = messageInput.selectionEnd;
+            
+            // Insert emoji at cursor position
+            messageInput.value = messageInput.value.substring(0, start) + 
+                               emojiChar + 
+                               messageInput.value.substring(end);
+            
+            // Move cursor after inserted emoji
+            messageInput.selectionStart = messageInput.selectionEnd = start + emojiChar.length;
+            
+            // Focus back on input
+            messageInput.focus();
+            
+            // Close emoji picker
+            emojiPicker.classList.remove('active');
+        });
+    });
+    
+    // Close dropdowns when clicking outside
     document.addEventListener('click', function() {
-        fileOptions.classList.remove('show');
+        attachmentOptions.classList.remove('active');
+        emojiPicker.classList.remove('active');
     });
-
-    // Prevenir cierre al hacer clic en las opciones
-    fileOptions.addEventListener('click', function(e) {
+    
+    // Prevent closing when clicking inside dropdowns
+    attachmentOptions.addEventListener('click', function(e) {
         e.stopPropagation();
     });
-
-    // Manejar selección de tipo de archivo
-    document.querySelectorAll('.file-option').forEach(option => {
+    
+    emojiPicker.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    // Handle attachment selection
+    document.querySelectorAll('.attachment-option').forEach(option => {
         option.addEventListener('click', function() {
             const type = this.dataset.type;
             tipoInput.value = type;
             
-            // Configurar el input de archivo según el tipo
+            // Set accept attribute based on file type
             fileInput.accept = type === 'foto' ? 'image/*' : 
                              type === 'video' ? 'video/*' : 
                              '*/*';
             
             fileInput.click();
-            fileOptions.classList.remove('show');
+            attachmentOptions.classList.remove('active');
         });
     });
-
-    // Mostrar preview del archivo seleccionado
+    
+    // Show file preview when selected
     fileInput.addEventListener('change', function() {
         if (this.files.length > 0) {
             fileName.textContent = this.files[0].name;
-            filePreview.style.display = 'flex';
+            filePreview.classList.add('active');
         } else {
-            filePreview.style.display = 'none';
+            filePreview.classList.remove('active');
         }
     });
-
-    // Limpiar preview al enviar
-    form.addEventListener('submit', function() {
-        filePreview.style.display = 'none';
+    
+    // Remove selected file
+    removeFileBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        filePreview.classList.remove('active');
     });
+    
+    // Clean up on form submit
+    form.addEventListener('submit', function() {
+        filePreview.classList.remove('active');
+        setTimeout(scrollToBottom, 100);
+    });
+    
+    // Auto-resize textarea
+    messageInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    // Add animation to new messages
+    setTimeout(function() {
+        const messages = document.querySelectorAll('.message-wrapper');
+        messages.forEach(msg => {
+            msg.classList.add('animate__animated', 'animate__fadeIn');
+        });
+    }, 100);
 });
 </script>
 {% endblock %}
-

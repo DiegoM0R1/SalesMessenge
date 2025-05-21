@@ -3,371 +3,1886 @@
 {% block title %}Chat de Grupo{% endblock %}
 
 {% block content %}
+<div class="chat-enhanced-container">
+  <!-- Header del chat -->
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <a href="{% url 'lista_grupos_chat' %}" class="back-button">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div class="group-avatar">
+        {% if grupo.id|divisibleby:3 %}
+          <div class="avatar-icon project-group"><i class="bi bi-briefcase-fill"></i></div>
+        {% elif grupo.id|divisibleby:2 %}
+          <div class="avatar-icon department-group"><i class="bi bi-building"></i></div>
+        {% else %}
+          <div class="avatar-icon general-group"><i class="bi bi-people-fill"></i></div>
+        {% endif %}
+      </div>
+      <div class="group-info">
+        <h2 class="group-name">{{ grupo.nombre }}</h2>
+        <div class="group-meta">
+          <span class="members-count">{{ grupo.miembros.count }} miembros</span>
+          <span class="group-status active">
+            <i class="bi bi-circle-fill"></i> Activo
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="chat-header-right">
+      <button class="header-action-btn" id="searchToggle">
+        <i class="bi bi-search"></i>
+      </button>
+      <button class="header-action-btn" id="infoToggle">
+        <i class="bi bi-info-circle"></i>
+      </button>
+      <div class="dropdown">
+        <button class="header-action-btn" id="menuToggle" data-bs-toggle="dropdown">
+          <i class="bi bi-three-dots-vertical"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end header-dropdown">
+          <li><a class="dropdown-item" href="#">
+            <i class="bi bi-people-fill me-2"></i> Ver miembros
+          </a></li>
+          <li><a class="dropdown-item" href="#">
+            <i class="bi bi-file-earmark-text me-2"></i> Archivos compartidos
+          </a></li>
+          <li><a class="dropdown-item" href="#">
+            <i class="bi bi-images me-2"></i> Fotos y videos
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="{% url 'editar_grupo_chat' grupo.id %}">
+            <i class="bi bi-pencil-fill me-2"></i> Editar grupo
+          </a></li>
+          <li><a class="dropdown-item text-danger" href="#" onclick="showDeleteModal()">
+            <i class="bi bi-trash-fill me-2"></i> Eliminar grupo
+          </a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Área de búsqueda oculta -->
+  <div class="search-area" id="searchArea">
+    <div class="search-input-container">
+      <i class="bi bi-search"></i>
+      <input type="text" placeholder="Buscar en el chat..." class="search-input">
+      <button class="search-close" id="searchClose">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel lateral de información oculto -->
+  <div class="info-panel" id="infoPanel">
+    <div class="info-panel-header">
+      <h3>Información del grupo</h3>
+      <button class="info-close" id="infoClose">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="info-panel-content">
+      <div class="info-group-avatar">
+        <div class="avatar-large general-group">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <h3 class="info-group-name">{{ grupo.nombre }}</h3>
+      </div>
+      
+      <div class="info-section">
+        <h4 class="info-section-title">Miembros ({{ grupo.miembros.count }})</h4>
+        <div class="member-list">
+          {% for miembro in grupo.miembros.all|slice:":5" %}
+            <div class="member-item">
+              <div class="member-avatar">
+                {% if miembro.foto_perfil %}
+                  <img src="{{ miembro.foto_perfil.url }}" alt="{{ miembro.nombre }}">
+                {% else %}
+                  <div class="avatar-placeholder">{{ miembro.nombre|slice:":1" }}{{ miembro.apellido|slice:":1" }}</div>
+                {% endif %}
+              </div>
+              <div class="member-info">
+                <span class="member-name">{{ miembro.nombre }} {{ miembro.apellido }}</span>
+                <span class="member-role">{{ miembro.get_tipo_usuario_display }}</span>
+              </div>
+              <div class="member-status {% if forloop.counter|divisibleby:2 %}online{% else %}offline{% endif %}">
+                <i class="bi bi-circle-fill"></i>
+              </div>
+            </div>
+          {% endfor %}
+          {% if grupo.miembros.count > 5 %}
+            <div class="show-more-members">
+              <button class="show-more-btn">Ver todos los miembros</button>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="info-section">
+        <h4 class="info-section-title">Archivos compartidos</h4>
+        <div class="files-preview">
+          <div class="empty-files">
+            <i class="bi bi-file-earmark-text"></i>
+            <p>No hay archivos compartidos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Área principal del chat -->
+  <div class="chat-messages" id="chatMessages">
+    <div class="date-divider">
+      <span>Hoy</span>
+    </div>
+
+    {% for mensaje in mensajes %}
+      <div class="message-container {% if mensaje.emisor == request.user %}outgoing{% else %}incoming{% endif %} animate__animated animate__fadeIn">
+        {% if mensaje.emisor != request.user %}
+          <div class="message-avatar">
+            {% if mensaje.emisor.foto_perfil %}
+              <img src="{{ mensaje.emisor.foto_perfil.url }}" alt="{{ mensaje.emisor.nombre }}">
+            {% else %}
+              <div class="avatar-placeholder">{{ mensaje.emisor.nombre|slice:":1" }}{{ mensaje.emisor.apellido|slice:":1" }}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+        
+        <div class="message-wrapper">
+          {% if mensaje.emisor != request.user %}
+            <div class="message-sender">
+              {{ mensaje.emisor.nombre }} {{ mensaje.emisor.apellido }}
+            </div>
+          {% endif %}
+          
+          <div class="message-bubble">
+            <div class="message-content">
+              {{ mensaje.contenido }}
+              
+              {% if mensaje.tipo == 'foto' %}
+                <div class="message-attachment photo">
+                  <img src="{{ mensaje.archivo.url }}" alt="Foto" class="attachment-image">
+                  <div class="attachment-overlay">
+                    <button class="overlay-btn view-btn"><i class="bi bi-eye-fill"></i></button>
+                    <button class="overlay-btn download-btn"><i class="bi bi-download"></i></button>
+                  </div>
+                </div>
+              {% elif mensaje.tipo == 'video' %}
+                <div class="message-attachment video">
+                  <video controls>
+                    <source src="{{ mensaje.archivo.url }}" type="video/mp4">
+                    Tu navegador no soporta el elemento video.
+                  </video>
+                  <div class="attachment-overlay">
+                    <button class="overlay-btn play-btn"><i class="bi bi-play-fill"></i></button>
+                    <button class="overlay-btn download-btn"><i class="bi bi-download"></i></button>
+                  </div>
+                </div>
+              {% elif mensaje.tipo != 'texto' %}
+                <div class="message-attachment file">
+                  <div class="file-icon"><i class="bi bi-file-earmark-text"></i></div>
+                  <div class="file-info">
+                    <div class="file-name">{{ mensaje.archivo.name|truncatechars:20 }}</div>
+<div class="file-meta">
+    {# Se elimina la línea con el span class="file-type" #}
+    <span class="file-size">{{ mensaje.archivo.size|filesizeformat }}</span>
+</div>
+                  </div>
+                  <a href="{{ mensaje.archivo.url }}" download class="file-download-btn">
+                    <i class="bi bi-download"></i>
+                  </a>
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="message-metadata">
+              <span class="message-time">{{ mensaje.fecha_hora|date:"H:i" }}</span>
+              {% if mensaje.emisor == request.user %}
+                <span class="message-status">
+                  <i class="bi bi-check2-all"></i>
+                </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        
+        <div class="message-actions">
+          <button class="message-action-btn reply-btn"><i class="bi bi-reply-fill"></i></button>
+          <button class="message-action-btn more-btn">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+        </div>
+      </div>
+    {% endfor %}
+    
+    <div class="typing-indicator">
+      <div class="typing-avatar">
+        <div class="avatar-placeholder">JD</div>
+      </div>
+      <div class="typing-bubble">
+        <div class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario de envío de mensajes -->
+  <form method="post" enctype="multipart/form-data" class="chat-input-form" id="chatForm">
+    {% csrf_token %}
+    
+    <!-- Campo oculto para el tipo de archivo -->
+    <div style="display: none;">
+      {{ form.tipo }}
+      {{ form.archivo }}
+    </div>
+    
+    <!-- Previsualización de archivos adjuntos -->
+    <div class="attachment-preview" id="attachmentPreview">
+      <div class="attachment-preview-content">
+        <div class="preview-icon">
+          <i class="bi bi-file-earmark"></i>
+        </div>
+        <div class="preview-info">
+          <span class="preview-name" id="attachmentName">archivo.pdf</span>
+          <span class="preview-size" id="attachmentSize">2.5 MB</span>
+        </div>
+      </div>
+      <button type="button" class="preview-remove" id="removeAttachment">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    
+    <!-- Opciones de archivo -->
+    <div class="attachment-options" id="attachmentOptions">
+      <div class="attachment-option" data-type="foto">
+        <div class="option-icon photo-icon">
+          <i class="bi bi-image"></i>
+        </div>
+        <span class="option-label">Foto</span>
+      </div>
+      <div class="attachment-option" data-type="video">
+        <div class="option-icon video-icon">
+          <i class="bi bi-camera-video"></i>
+        </div>
+        <span class="option-label">Video</span>
+      </div>
+      <div class="attachment-option" data-type="documento">
+        <div class="option-icon document-icon">
+          <i class="bi bi-file-earmark-text"></i>
+        </div>
+        <span class="option-label">Documento</span>
+      </div>
+      <div class="attachment-option" data-type="audio">
+        <div class="option-icon audio-icon">
+          <i class="bi bi-mic"></i>
+        </div>
+        <span class="option-label">Audio</span>
+      </div>
+    </div>
+    
+    <!-- Barra de entrada de mensaje -->
+    <div class="chat-input-container">
+      <button type="button" class="input-action-btn" id="emojiToggle">
+        <i class="bi bi-emoji-smile"></i>
+      </button>
+      
+      <div class="input-wrapper">
+        {{ form.contenido }}
+      </div>
+      
+      <button type="button" class="input-action-btn" id="attachmentToggle">
+        <i class="bi bi-paperclip"></i>
+      </button>
+      
+      <button type="submit" class="send-button" id="sendButton">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </div>
+  </form>
+  
+  <!-- Panel emoji (oculto por defecto) -->
+  <div class="emoji-panel" id="emojiPanel">
+    <div class="emoji-panel-tabs">
+      <button class="emoji-tab active" data-category="smileys">😊</button>
+      <button class="emoji-tab" data-category="people">👪</button>
+      <button class="emoji-tab" data-category="animals">🐶</button>
+      <button class="emoji-tab" data-category="food">🍕</button>
+      <button class="emoji-tab" data-category="objects">💡</button>
+      <button class="emoji-tab" data-category="symbols">❤️</button>
+    </div>
+    <div class="emoji-panel-content">
+      <div class="emoji-grid">
+        <!-- Muestra emoji con JavaScript -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación para eliminar grupo -->
+<div class="modal fade" id="deleteGroupModal" tabindex="-1" aria-labelledby="deleteGroupModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteGroupModalLabel">Eliminar grupo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="delete-icon-container">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <p>¿Estás seguro de que deseas eliminar este grupo?</p>
+        <p class="text-muted">Esta acción no se puede deshacer. Todos los mensajes y archivos compartidos en este grupo se perderán permanentemente.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form action="{% url 'eliminar_grupo_chat' grupo.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Eliminar grupo</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>
   :root {
-    --whatsapp-green: #12288c;
-    --message-out: #DCF8C6;
-    --message-in: #FFFFFF;
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #e74c3c;
+    --light-bg: #f8f9fa;
+    --dark-bg: #212529;
+    --light-text: #f8f9fa;
+    --dark-text: #343a40;
+    
+    --chat-bg-light: #f0f2f5;
+    --chat-bg-dark: #222e35;
+    --message-out-light: #d9fdd3;
+    --message-out-dark: #005c4b;
+    --message-in-light: #ffffff;
+    --message-in-dark: #202c33;
+    
+    --transition-speed: 0.3s;
+    --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    --group-color-project: #3498db;
+    --group-color-department: #9b59b6;
+    --group-color-general: #2ecc71;
+    
+    --attachment-overlay: rgba(0, 0, 0, 0.5);
+    --attachment-bg-light: rgba(0, 0, 0, 0.03);
+    --attachment-bg-dark: rgba(255, 255, 255, 0.05);
+    
+    --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --shadow-dark: 0 2px 10px rgba(0, 0, 0, 0.3);
   }
 
-  .chat-container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: #E5DDD5;
-    height: 100vh;
+  /* Eliminando padding del contenedor base */
+  .container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Contenedor principal del chat */
+  .chat-enhanced-container {
+    max-width: 100%;
+    height: calc(100vh - 60px);
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 
+      "header header"
+      "search search"
+      "messages info"
+      "input input";
+    position: relative;
+    overflow: hidden;
+  }
+
+  body.light-mode .chat-enhanced-container {
+    background-color: var(--chat-bg-light);
+  }
+
+  body.dark-mode .chat-enhanced-container {
+    background-color: var(--chat-bg-dark);
+  }
+
+  /* Header del chat */
+  .chat-header {
+    grid-area: header;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    z-index: 10;
+  }
+
+  body.light-mode .chat-header {
+    background-color: #ffffff;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  }
+
+  body.dark-mode .chat-header {
+    background-color: #1f2c33;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .chat-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .back-button {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+  }
+
+  body.light-mode .back-button {
+    color: var(--dark-text);
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  body.dark-mode .back-button {
+    color: var(--light-text);
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .back-button:hover {
+    transform: translateX(-3px);
+  }
+
+  .group-avatar {
+    position: relative;
+  }
+
+  .avatar-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    font-size: 2.5rem;
+  }
+
+  .project-group {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+  }
+
+  .department-group {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  }
+
+  .general-group {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+  }
+
+  .group-info {
     display: flex;
     flex-direction: column;
   }
 
-  .chat-header {
-    background: var(--whatsapp-green);
-    color: white;
-    padding: 10px 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .group-name {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0;
   }
 
-  .group-image {
+  .group-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .group-status.active {
+    color: #2ecc71;
+  }
+
+  .group-status.inactive {
+    color: #95a5a6;
+  }
+
+  .group-status i {
+    font-size: 0.5rem;
+    vertical-align: middle;
+    margin-right: 0.2rem;
+  }
+
+  .chat-header-right {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .header-action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    border: none;
+    background: transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .header-action-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  body.dark-mode .header-action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .header-dropdown {
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+    margin-top: 0.5rem;
+    min-width: 220px;
+  }
+
+  body.light-mode .header-dropdown {
+    background-color: white;
+    box-shadow: var(--shadow-light);
+  }
+
+  body.dark-mode .header-dropdown {
+    background-color: #2d3436;
+    box-shadow: var(--shadow-dark);
+  }
+
+  body.dark-mode .dropdown-item {
+    color: var(--light-text);
+  }
+
+  body.dark-mode .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  body.dark-mode .dropdown-divider {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Área de búsqueda */
+  .search-area {
+    grid-area: search;
+    padding: 0.5rem 1rem;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+  }
+
+  .search-area.active {
+    max-height: 60px;
+    padding: 0.5rem 1rem;
+  }
+
+  .search-input-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 24px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  body.dark-mode .search-input-container {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    flex: 1;
+    font-size: 0.95rem;
+  }
+
+  body.dark-mode .search-input {
+    color: var(--light-text);
+  }
+
+  .search-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .search-close:hover {
+    opacity: 1;
+  }
+
+  /* Panel de información */
+  .info-panel {
+    grid-area: info;
+    width: 0;
+    background-color: inherit;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid;
+  }
+
+  body.light-mode .info-panel {
+    border-left-color: rgba(0, 0, 0, 0.1);
+  }
+
+  body.dark-mode .info-panel {
+    border-left-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .info-panel.active {
+    width: 320px;
+  }
+
+  .info-panel-header {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid;
+  }
+
+  body.light-mode .info-panel-header {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+  }
+
+  body.dark-mode .info-panel-header {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .info-panel-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .info-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .info-close:hover {
+    opacity: 1;
+  }
+
+  .info-panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+
+  .info-group-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .info-group-name {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .info-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .info-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid;
+  }
+
+  body.light-mode .info-section-title {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+  }
+
+  body.dark-mode .info-section-title {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .member-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .member-avatar {
+    position: relative;
+  }
+
+  .member-avatar img,
+  .member-avatar .avatar-placeholder {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #075E54;
+    object-fit: cover;
+  }
+
+  .avatar-placeholder {
     display: flex;
     align-items: center;
     justify-content: center;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    font-weight: 600;
   }
 
-  .group-info {
+  .member-info {
     flex: 1;
   }
 
-  .group-members {
-    font-size: 0.8em;
-    opacity: 0.9;
+  .member-name {
+    display: block;
+    font-weight: 500;
+    line-height: 1.2;
+    font-size: 0.95rem;
   }
 
-  .chat-box {
-    flex: 1;
+  .member-role {
+    display: block;
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .member-status {
+    font-size: 0.6rem;
+  }
+
+  .member-status.online {
+    color: #2ecc71;
+  }
+
+  .member-status.offline {
+    color: #95a5a6;
+  }
+
+  .show-more-members {
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  .show-more-btn {
+    background: transparent;
+    border: none;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    transition: background-color 0.2s;
+  }
+
+  .show-more-btn:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+  }
+
+  .empty-files {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 0;
+    opacity: 0.5;
+  }
+
+  .empty-files i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-files p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  /* Área de mensajes */
+  .chat-messages {
+    grid-area: messages;
     overflow-y: auto;
-    padding: 15px;
-    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v100H0z' fill='%23E5DDD5'/%3E%3C/svg%3E");
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .mensaje {
-    max-width: 65%;
-    margin-bottom: 10px;
-    padding: 8px 12px;
-    border-radius: 7.5px;
+  body.light-mode .chat-messages {
+    background-color: var(--chat-bg-light);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  body.dark-mode .chat-messages {
+    background-color: var(--chat-bg-dark);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  /* Separador de fecha */
+  .date-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5rem 0;
+  }
+
+  .date-divider span {
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 0.2rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+  }
+
+  body.dark-mode .date-divider span {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Contenedor de mensaje */
+  .message-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
     position: relative;
-    word-wrap: break-word;
+    margin-bottom: 0.75rem;
+    max-width: 85%;
   }
 
-  .mensaje.sent {
-    background: var(--message-out);
-    margin-left: auto;
-    border-top-right-radius: 0;
+  .message-container.incoming {
+    align-self: flex-start;
   }
 
-  .mensaje.received {
-    background: var(--message-in);
-    margin-right: auto;
+  .message-container.outgoing {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+
+  .message-avatar {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .message-avatar img,
+  .message-avatar .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .message-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .message-sender {
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    color: var(--secondary-color);
+  }
+
+  .message-bubble {
+    position: relative;
+    border-radius: 12px;
+    padding: 0.5rem 0.75rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+  }
+
+  .incoming .message-bubble {
     border-top-left-radius: 0;
   }
 
-  .mensaje-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 5px;
+  .outgoing .message-bubble {
+    border-top-right-radius: 0;
   }
 
-  .mensaje-sender {
-    font-size: 0.8em;
-    font-weight: 600;
-    color: #075e5b;
+  body.light-mode .message-container.incoming .message-bubble {
+    background-color: var(--message-in-light);
   }
 
-  .mensaje-content {
-    margin-bottom: 5px;
+  body.light-mode .message-container.outgoing .message-bubble {
+    background-color: var(--message-out-light);
   }
 
-  .mensaje-time {
-    float: right;
-    font-size: 0.7em;
-    color: #999;
-    margin-top: 2px;
+  body.dark-mode .message-container.incoming .message-bubble {
+    background-color: var(--message-in-dark);
   }
 
-  .archivo-preview {
+  body.dark-mode .message-container.outgoing .message-bubble {
+    background-color: var(--message-out-dark);
+  }
+
+  .message-content {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .message-metadata {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 5px;
-    background: rgba(0,0,0,0.05);
-    border-radius: 5px;
-    margin-top: 5px;
+    justify-content: flex-end;
+    gap: 0.3rem;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    opacity: 0.7;
   }
 
-  .preview-image {
-    max-width: 200px;
-    max-height: 200px;
+  .message-status {
+    color: #3498db;
+  }
+
+  /* Adjuntos en mensajes */
+  .message-attachment {
+    margin-top: 0.5rem;
     border-radius: 8px;
-    margin-top: 5px;
+    overflow: hidden;
+    position: relative;
   }
 
-  .chat-footer {
-    background: #F0F0F0;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .chat-input-container {
-    display: flex;
-    flex: 1;
-    background: white;
-    border-radius: 25px;
-    padding: 8px 15px;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .chat-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 1em;
-  }
-
-  .attach-button, .send-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--whatsapp-green);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-  }
-
-  .file-options {
-    position: absolute;
-    bottom: 70px;
-    left: 20px;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    display: none;
-    padding: 10px;
-  }
-
-  .file-options.show {
+  .message-attachment.photo img {
+    max-width: 250px;
+    max-height: 250px;
     display: block;
   }
 
-  .file-option {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 15px;
-    cursor: pointer;
-    transition: background 0.2s;
+  .message-attachment.video video {
+    max-width: 250px;
+    max-height: 250px;
+    display: block;
   }
 
-  .file-option:hover {
-    background: #f5f5f5;
-  }
-
-  .file-preview {
+  .message-attachment.file {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 5px 10px;
-    background: rgba(0,0,0,0.05);
-    border-radius: 15px;
-    margin-right: 10px;
-    max-width: 200px;
-    overflow: hidden;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background-color: var(--attachment-bg-light);
+    border-radius: 8px;
+  }
+
+  body.dark-mode .message-attachment.file {
+    background-color: var(--attachment-bg-dark);
+  }
+
+  .file-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: rgba(52, 152, 219, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #3498db;
+  }
+
+  .file-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .file-name {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
     white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  #tipo {
-    display: none;
+  .file-meta {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    opacity: 0.7;
   }
-</style>
 
-<div class="chat-container">
-  <div class="chat-header">
-    <div class="group-image">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-        <circle cx="9" cy="7" r="4"></circle>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-      </svg>
-    </div>
-    <div class="group-info">
-      <h2 style="margin: 0;">{{ grupo.nombre }}</h2>
-      <span class="group-members">{{ grupo.miembros.count }} miembros</span>
-    </div>
-  </div>
+  .file-download-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
 
-  <div class="chat-box">
-    {% for mensaje in mensajes %}
-      <div class="mensaje {% if mensaje.emisor == request.user %}sent{% else %}received{% endif %}">
-        <div class="mensaje-header">
-          <span class="mensaje-sender">{{ mensaje.emisor.nombre }} {{ mensaje.emisor.apellido }}</span>
-        </div>
-        <div class="mensaje-content">
-          {{ mensaje.contenido }}
-          {% if mensaje.tipo == 'foto' %}
-            <div class="archivo-preview">
-              <img src="{{ mensaje.archivo.url }}" alt="Foto" class="preview-image">
-            </div>
-          {% elif mensaje.tipo == 'video' %}
-            <div class="archivo-preview">
-              <video width="200" controls>
-                <source src="{{ mensaje.archivo.url }}" type="video/mp4">
-                Tu navegador no soporta el elemento video.
-              </video>
-            </div>
-          {% elif mensaje.tipo != 'texto' %}
-            <div class="archivo-preview">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                <polyline points="13 2 13 9 20 9"></polyline>
-              </svg>
-              <a href="{{ mensaje.archivo.url }}" target="_blank">{{ mensaje.archivo.name }}</a>
-            </div>
-          {% endif %}
-        </div>
-        <span class="mensaje-time">{{ mensaje.fecha_hora|date:"H:i" }}</span>
-      </div>
-    {% endfor %}
-  </div>
+  .file-download-btn:hover {
+    background-color: rgba(52, 152, 219, 0.2);
+    transform: scale(1.1);
+  }
 
-  <form method="post" enctype="multipart/form-data" class="chat-footer" id="chatForm">
-    {% csrf_token %}
-    {{ form.media }}
-    <div class="chat-input-container">
-      <div class="file-options">
-        <div class="file-option" data-type="foto">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-          <span>Foto</span>
-        </div>
-        <div class="file-option" data-type="video">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polygon points="23 7 16 12 23 17 23 7"></polygon>
-            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-          </svg>
-          <span>Video</span>
-        </div>
-        <div class="file-option" data-type="archivo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-            <polyline points="13 2 13 9 20 9"></polyline>
-          </svg>
-          <span>Documento</span>
-        </div>
-      </div>
+  .attachment-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--attachment-overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
 
-      <button type="button" class="attach-button" id="attachButton">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-        </svg>
-      </button>
+  .message-attachment:hover .attachment-overlay {
+    opacity: 1;
+  }
 
-      {{ form.tipo }}
-      {{ form.archivo }}
-      
-      <div id="filePreview" class="file-preview" style="display: none;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-          <polyline points="13 2 13 9 20 9"></polyline>
-        </svg>
-        <span id="fileName"></span>
-      </div>
+  .overlay-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
 
-      {{ form.contenido }}
-      
-      <button type="submit" class="send-button">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <line x1="22" y1="2" x2="11" y2="13"></line>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-        </svg>
-      </button>
-    </div>
-  </form>
-</div>
+  .overlay-btn:hover {
+    transform: scale(1.1);
+  }
 
+  /* Acciones de mensaje */
+  .message-actions {
+    position: absolute;
+    top: 0;
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .message-container.incoming .message-actions {
+    right: -70px;
+  }
+
+  .message-container.outgoing .message-actions {
+    left: -70px;
+  }
+
+  .message-container:hover .message-actions {
+    opacity: 1;
+  }
+
+  .message-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  body.dark-mode .message-action-btn {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .message-action-btn:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+    transform: scale(1.1);
+  }
+
+  body.dark-mode .message-action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Indicador de escritura */
+  .typing-indicator {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+  }
+
+  .typing-indicator.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .typing-bubble {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 0.75rem;
+    border-radius: 12px;
+    border-bottom-left-radius: 0;
+  }
+
+  body.dark-mode .typing-bubble {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .typing-dots {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    height: 10px;
+  }
+
+  .typing-dots span {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.3);
+    animation: typingAnimation 1.5s infinite ease-in-out;
+  }
+
+  body.dark-mode .typing-dots span {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .typing-dots span:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  .typing-dots span:nth-child(2) {
+    animation-delay: 0.4s;
+  }
+
+  .typing-dots span:nth-child(3) {
+    animation-delay: 0.8s;
+  }
+
+  @keyframes typingAnimation {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* Formulario de entrada */
+  .chat-input-form {
+    grid-area: input;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 5;
+  }
+
+  body.light-mode .chat-input-form {
+    background-color: #ffffff;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.05);
+  }
+
+  body.dark-mode .chat-input-form {
+    background-color: #1f2c33;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Previsualización de adjuntos */
+  .attachment-preview {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  body.dark-mode .attachment-preview {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .attachment-preview.active {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: fadeIn 0.3s;
+  }
+
+  .attachment-preview-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .preview-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: rgba(52, 152, 219, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3498db;
+    font-size: 1.2rem;
+  }
+
+  .preview-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .preview-size {
+    font-size: 0.75rem;
+    opacity: 0.7;
+  }
+
+  .preview-remove {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  body.dark-mode .preview-remove {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .preview-remove:hover {
+    background-color: rgba(231, 76, 60, 0.2);
+    transform: scale(1.1);
+  }
+
+  /* Opciones de adjuntos */
+  .attachment-options {
+    position: absolute;
+    bottom: 70px;
+    left: 25px;
+    background-color: inherit;
+    border-radius: 16px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding: 0.75rem;
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s var(--transition-bounce);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  body.dark-mode .attachment-options {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .attachment-options.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .attachment-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .attachment-option:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  body.dark-mode .attachment-option:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .option-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+  }
+
+  .photo-icon {
+    background: linear-gradient(135deg, #26de81, #20bf6b);
+  }
+
+  .video-icon {
+    background: linear-gradient(135deg, #eb3b5a, #fc5c65);
+  }
+
+  .document-icon {
+    background: linear-gradient(135deg, #4b7bec, #3867d6);
+  }
+
+  .audio-icon {
+    background: linear-gradient(135deg, #fa8231, #fd9644);
+  }
+
+  .option-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  /* Contenedor de entrada */
+  .chat-input-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .input-action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  body.dark-mode .input-action-btn {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .input-action-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+  }
+
+  body.dark-mode .input-action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .input-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  textarea {
+    width: 100%;
+    border: none;
+    border-radius: 20px;
+    padding: 0.75rem 1rem;
+    max-height: 100px;
+    background-color: rgba(0, 0, 0, 0.05);
+    resize: none;
+    outline: none;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    transition: height 0.2s;
+  }
+
+  body.dark-mode textarea {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--light-text);
+  }
+
+  textarea:focus {
+    background-color: rgba(0, 0, 0, 0.07);
+  }
+
+  body.dark-mode textarea:focus {
+    background-color: rgba(255, 255, 255, 0.07);
+  }
+
+  .send-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .send-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Panel de emojis */
+  .emoji-panel {
+    position: absolute;
+    bottom: 70px;
+    right: 25px;
+    width: 320px;
+    height: 250px;
+    background-color: inherit;
+    border-radius: 16px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s var(--transition-bounce);
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden;
+  }
+
+  body.dark-mode .emoji-panel {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  .emoji-panel.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .emoji-panel-tabs {
+    display: flex;
+    border-bottom: 1px solid;
+  }
+
+  body.light-mode .emoji-panel-tabs {
+    border-bottom-color: rgba(0, 0, 0, 0.1);
+  }
+
+  body.dark-mode .emoji-panel-tabs {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .emoji-tab {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .emoji-tab.active {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  body.dark-mode .emoji-tab.active {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .emoji-panel-content {
+    flex: 1;
+    padding: 0.5rem;
+    overflow-y: auto;
+  }
+
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.5rem;
+  }
+
+  .emoji-item {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .emoji-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: scale(1.2);
+  }
+
+  body.dark-mode .emoji-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Modal de eliminación */
+  .delete-icon-container {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .delete-icon-container i {
+    font-size: 3.5rem;
+    color: var(--accent-color);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .chat-enhanced-container {
+      height: calc(100vh - 56px);
+    }
+
+    .info-panel.active {
+      position: fixed;
+      top: 56px;
+      right: 0;
+      bottom: 0;
+      width: 280px;
+      z-index: 1000;
+    }
+
+    .message-container {
+      max-width: 95%;
+    }
+
+    .message-actions {
+      opacity: 1;
+      position: relative;
+      top: auto;
+      left: auto;
+      right: auto;
+    }
+
+    .message-container.incoming .message-actions {
+      right: 0;
+    }
+
+    .message-container.outgoing .message-actions {
+      left: 0;
+    }
+
+    .attachment-options {
+      left: 0;
+      width: calc(100% - 2rem);
+    }
+
+    .emoji-panel {
+      right: 0;
+      width: calc(100% - 2rem);
+    }
+  }
+
+  /* Animaciones */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate__fadeIn {
+    animation: fadeIn 0.5s;
+  }
+
+  /* Estilos para mantener compatibilidad con el formulario original */
+  #id_contenido {
+    width: 100%;
+    border: none;
+    border-radius: 20px;
+    padding: 0.75rem 1rem;
+    max-height: 100px;
+    background-color: rgba(0, 0, 0, 0.05);
+    resize: none;
+    outline: none;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  body.dark-mode #id_contenido {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--light-text);
+  }
+
+  #id_contenido:focus {
+    background-color: rgba(0, 0, 0, 0.07);
+  }
+
+  body.dark-mode #id_contenido:focus {
+    background-color: rgba(255, 255, 255, 0.07);
+  }
+
+  </style>
+
+  
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const attachButton = document.getElementById('attachButton');
-    const fileOptions = document.querySelector('.file-options');
-    const fileInput = document.querySelector('input[name="archivo"]');
-    const tipoInput = document.querySelector('select[name="tipo"]');
-    const filePreview = document.getElementById('filePreview');
-    const fileName = document.getElementById('fileName');
-    const form = document.getElementById('chatForm');
+    // --- SELECCIÓN DE ELEMENTOS DEL DOM ---
+    const chatMessages = document.getElementById('chatMessages');
+    const chatForm = document.getElementById('chatForm');
+    
+    // Campos del formulario Django (asumiendo IDs generados por Django)
+    const tipoInput = document.getElementById('id_tipo'); // O document.querySelector('select[name="tipo"]');
+    const archivoInput = document.getElementById('id_archivo'); // O document.querySelector('input[name="archivo"]');
+    const contenidoInput = document.getElementById('id_contenido'); // O document.querySelector('textarea[name="contenido"]');
 
-    // Mostrar/ocultar opciones de archivo
-    attachButton.addEventListener('click', function(e) {
-        e.stopPropagation();
-        fileOptions.classList.toggle('show');
-    });
+    // Botones y paneles de la UI
+    const searchToggle = document.getElementById('searchToggle');
+    const searchArea = document.getElementById('searchArea');
+    const searchClose = document.getElementById('searchClose');
 
-    // Cerrar opciones al hacer clic fuera
-    document.addEventListener('click', function() {
-        fileOptions.classList.remove('show');
-    });
+    const infoToggle = document.getElementById('infoToggle');
+    const infoPanel = document.getElementById('infoPanel');
+    const infoClose = document.getElementById('infoClose');
 
-    // Prevenir cierre al hacer clic en las opciones
-    fileOptions.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
+    const attachmentToggle = document.getElementById('attachmentToggle');
+    const attachmentOptions = document.getElementById('attachmentOptions');
+    const attachmentPreview = document.getElementById('attachmentPreview');
+    const attachmentName = document.getElementById('attachmentName');
+    const attachmentSize = document.getElementById('attachmentSize');
+    const removeAttachment = document.getElementById('removeAttachment');
 
-    // Manejar selección de tipo de archivo
-    document.querySelectorAll('.file-option').forEach(option => {
-        option.addEventListener('click', function() {
-            const type = this.dataset.type;
-            tipoInput.value = type;
-            
-            // Configurar el input de archivo según el tipo
-            fileInput.accept = type === 'foto' ? 'image/*' : 
-                             type === 'video' ? 'video/*' : 
-                             '*/*';
-            
-            fileInput.click();
-            fileOptions.classList.remove('show');
+    const emojiToggle = document.getElementById('emojiToggle');
+    const emojiPanel = document.getElementById('emojiPanel');
+    const emojiGrid = emojiPanel ? emojiPanel.querySelector('.emoji-grid') : null; // Asegurarse que emojiPanel existe
+
+    const sendButton = document.getElementById('sendButton'); // Asegúrate que el botón de submit tenga este ID si lo necesitas referenciar
+
+    // --- FUNCIONES AUXILIARES ---
+    function scrollToBottom() {
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    // --- LÓGICA INICIAL ---
+    scrollToBottom(); // Scroll al cargar
+    if (attachmentPreview) attachmentPreview.style.display = 'none'; // Ocultar preview inicialmente
+
+    // --- MANEJADORES DE EVENTOS UI ---
+
+    // Toggle área de búsqueda
+    if (searchToggle && searchArea && searchClose) {
+        searchToggle.addEventListener('click', () => searchArea.classList.toggle('active'));
+        searchClose.addEventListener('click', () => searchArea.classList.remove('active'));
+    }
+
+    // Toggle panel de información
+    if (infoToggle && infoPanel && infoClose) {
+        infoToggle.addEventListener('click', () => infoPanel.classList.toggle('active'));
+        infoClose.addEventListener('click', () => infoPanel.classList.remove('active'));
+    }
+    
+    // Toggle opciones de adjuntos
+    if (attachmentToggle && attachmentOptions) {
+        attachmentToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            attachmentOptions.classList.toggle('active');
+            if (emojiPanel) emojiPanel.classList.remove('active'); // Cerrar panel de emojis si está abierto
         });
-    });
+    }
 
-    // Mostrar preview del archivo seleccionado
-    fileInput.addEventListener('change', function() {
-        if (this.files.length > 0) {
-            fileName.textContent = this.files[0].name;
-            filePreview.style.display = 'flex';
-        } else {
-            filePreview.style.display = 'none';
+    // Toggle panel de emojis
+    if (emojiToggle && emojiPanel) {
+        emojiToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emojiPanel.classList.toggle('active');
+            if (attachmentOptions) attachmentOptions.classList.remove('active'); // Cerrar adjuntos si está abierto
+        });
+    }
+
+    // Cerrar popups (adjuntos, emojis) al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        if (attachmentOptions && !attachmentOptions.contains(e.target) && !attachmentToggle.contains(e.target)) {
+            attachmentOptions.classList.remove('active');
+        }
+        if (emojiPanel && !emojiPanel.contains(e.target) && !emojiToggle.contains(e.target)) {
+            emojiPanel.classList.remove('active');
         }
     });
+    if(attachmentOptions) attachmentOptions.addEventListener('click', e => e.stopPropagation());
+    if(emojiPanel) emojiPanel.addEventListener('click', e => e.stopPropagation());
 
-    // Limpiar preview al enviar
-    form.addEventListener('submit', function() {
-        filePreview.style.display = 'none';
-    });
 
-    // Auto-scroll al último mensaje
-    const chatBox = document.querySelector('.chat-box');
-    chatBox.scrollTop = chatBox.scrollHeight;
-});
+    // --- MANEJO DE ADJUNTOS ---
+    if (archivoInput && tipoInput && attachmentPreview && attachmentName && attachmentSize && removeAttachment) {
+        document.querySelectorAll('.attachment-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const type = this.dataset.type; // 'foto', 'video', 'documento', 'audio'
+                
+                // Mapear tipo de UI a tipo de modelo si es necesario
+                let modelType = type;
+                if (type === 'documento') modelType = 'archivo'; // Asumiendo que 'archivo' es el valor en TIPO_OPCIONES
+                if (type === 'audio') modelType = 'archivo'; // O crea un tipo 'audio' en el modelo
+
+                tipoInput.value = modelType;
+                
+                archivoInput.accept = type === 'foto' ? 'image/*' :
+                                   type === 'video' ? 'video/*' :
+                                   type === 'audio' ? 'audio/*' :
+                                   '*/*'; // Para 'documento' o cualquier otro
+                archivoInput.click(); // Abre el selector de archivos del navegador
+                if (attachmentOptions) attachmentOptions.classList.remove('active');
+            });
+        });
+
+        archivoInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                attachmentName.textContent = file.name;
+                attachmentSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                attachmentPreview.style.display = 'flex';
+                attachmentPreview.classList.add('active');
+
+                // Si es una imagen, podrías mostrar una miniatura
+                const previewIconDiv = attachmentPreview.querySelector('.preview-icon');
+                if (file.type.startsWith('image/') && previewIconDiv) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewIconDiv.innerHTML = `<img src="${e.target.result}" alt="preview" style="width:100%; height:100%; object-fit:cover; border-radius: inherit;">`;
+                    }
+                    reader.readAsDataURL(file);
+                } else if (previewIconDiv) {
+                     // Restaurar icono genérico si no es imagen
+                    previewIconDiv.innerHTML = `<i class="bi bi-file-earmark"></i>`;
+                }
+
+            } else {
+                attachmentPreview.style.display = 'none';
+                attachmentPreview.classList.remove('active');
+            }
+        });
+
+        removeAttachment.addEventListener('click', function() {
+            archivoInput.value = ''; // Limpia el input de archivo
+            attachmentPreview.style.display = 'none';
+            attachmentPreview.classList.remove('active');
+            const previewIconDiv = attachmentPreview.querySelector('.preview-icon');
+            if(previewIconDiv) previewIconDiv.innerHTML = `<i class="bi bi-file-earmark"></i>`; // Restaura icono
+            if (tipoInput) tipoInput.value = 'texto'; // Regresar tipo a texto si se cancela archivo
+        });
+    }
+
+    // --- MANEJO DE EMOJIS (Ejemplo Básico) ---
+    if (emojiGrid && contenidoInput) {
+        const commonEmojis = ['😊', '😂', '❤️', '👍', '🎉', '🤔', '😢', '😮', '😎', '🙏', '💯', '🔥']; // Ejemplo
+        commonEmojis.forEach(emojiChar => {
+            const emojiSpan = document.createElement('span');
+            emojiSpan.classList.add('emoji-item');
+            emojiSpan.textContent = emojiChar;
+            emojiSpan.addEventListener('click', () => {
+                const start = contenidoInput.selectionStart;
+                const end = contenidoInput.selectionEnd;
+                contenidoInput.value = contenidoInput.value.substring(0, start) + emojiChar + contenidoInput.value.substring(end);
+                contenidoInput.focus();
+                contenidoInput.selectionStart = contenidoInput.selectionEnd = start + emojiChar.length;
+                if (emojiPanel) emojiPanel.classList.remove('active');
+                triggerInputEvent(contenidoInput); // Para el auto-resize
+            });
+            emojiGrid.appendChild(emojiSpan);
+        });
+        // Aquí podrías añadir lógica para las pestañas de categorías de emojis
+    }
+    
+    // --- TEXTAREA AUTO-RESIZE ---
+    if (contenidoInput) {
+        contenidoInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        // Para disparar el evento 'input' y ajustar altura al cargar si hay contenido (ej. al editar un mensaje)
+        function triggerInputEvent(element) {
+            const event = new Event('input', { bubbles: true, cancelable: true });
+            element.dispatchEvent(event);
+        }
+        triggerInputEvent(contenidoInput);
+    }
+
+
+    // --- ENVÍO DEL FORMULARIO ---
+    if (chatForm) {
+        chatForm.addEventListener('submit', function() {
+            // Si no hay archivo seleccionado Y el tipo actual es para un archivo, resetear a 'texto'
+            // Esto es una salvaguarda, el `default='texto'` en el modelo es la principal defensa.
+            if (archivoInput && (!archivoInput.files || archivoInput.files.length === 0)) {
+                const fileTypes = ['foto', 'video', 'archivo', 'documento', 'audio']; // Tipos que implican archivo
+                if (tipoInput && fileTypes.includes(tipoInput.value)) {
+                     tipoInput.value = 'texto';
+                }
+            } else if (archivoInput && archivoInput.files && archivoInput.files.length > 0) {
+                // Si hay archivo, asegurarse que 'tipo' no sea 'texto' (JS de adjuntos ya debería hacer esto)
+                if (tipoInput && tipoInput.value === 'texto') {
+                    // Inferir un tipo básico si es posible o dejarlo como 'archivo'
+                    // Esta lógica puede ser más compleja si quieres ser preciso.
+                    // Por ahora, si JS de adjuntos funcionó, esto no debería ser necesario.
+                    // tipoInput.value = 'archivo'; // O un valor por defecto para archivos si no se especificó
+                }
+            }
+
+
+            if (attachmentPreview) {
+                attachmentPreview.style.display = 'none';
+                attachmentPreview.classList.remove('active');
+            }
+            if (contenidoInput) {
+                // Opcional: deshabilitar botón de enviar para prevenir doble submit
+                if(sendButton) sendButton.disabled = true;
+                // No es necesario limpiar contenidoInput.value aquí, Django lo hará al recargar
+            }
+            
+            // Scroll to bottom after a slight delay to allow message to render (if not using AJAX)
+            setTimeout(scrollToBottom, 200); 
+        });
+    }
+
+}); // Fin de DOMContentLoaded
+
+// --- MODAL DE ELIMINACIÓN ---
+function showDeleteModal() {
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteGroupModal'));
+    deleteModal.show();
+}
 </script>
 {% endblock %}

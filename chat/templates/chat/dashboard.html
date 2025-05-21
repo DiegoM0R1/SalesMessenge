@@ -4,122 +4,825 @@
 
 {% block content %}
 
-<div class="container mt-4">
-    <h1>Dashboard</h1>
-    <div class="row">
-    <div class="col-md-4">
-        <div class="card-custom bg-dark text-white">
-            <div class="card-header">Total de Clientes</div>
-            <div class="card-body">
-                <h5 class="card-title">{{ total_clientes }}</h5>
+<div class="dashboard-container animate__animated animate__fadeIn">
+    <div class="section-header mb-4">
+        <h1 class="display-5 text-gradient">Panel de Control</h1>
+        <div class="header-line"></div>
+    </div>
+
+    <!-- Tarjeta principal con total de clientes -->
+    <div class="main-card-row animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="main-stat-card">
+            <div class="stat-icon">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-title">Total de Clientes</div>
+                <div class="stat-value" data-target="{{ total_clientes }}">0</div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 100%"></div>
+                </div>
             </div>
         </div>
-    </div> 
+    </div>
+
+    <!-- Fila 1: Estado de clientes -->
+    <div class="dashboard-section">
+        <div class="stat-cards-container">
+            <div class="stat-card active-clients animate__animated animate__fadeInUp animate__delay-2s">
+                <div class="stat-card-inner">
+                    <div class="stat-header">
+                        <div class="stat-title">Clientes Activos</div>
+                        <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value" data-target="{{ clientes_activos }}">0</div>
+                    </div>
+                    <div class="stat-footer">
+                        <div class="progress-mini">
+                            <div class="progress-mini-bar" style="width: {{ clientes_activos|default:0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card inactive-clients animate__animated animate__fadeInUp animate__delay-2s">
+                <div class="stat-card-inner">
+                    <div class="stat-header">
+                        <div class="stat-title">Clientes Inactivos</div>
+                        <div class="stat-icon"><i class="bi bi-x-circle-fill"></i></div>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value" data-target="{{ clientes_inactivos }}">0</div>
+                    </div>
+                    <div class="stat-footer">
+                        <div class="progress-mini">
+                            <div class="progress-mini-bar" style="width: {{ clientes_inactivos|default:0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card prospect-clients animate__animated animate__fadeInUp animate__delay-2s">
+                <div class="stat-card-inner">
+                    <div class="stat-header">
+                        <div class="stat-title">Clientes Prospectos</div>
+                        <div class="stat-icon"><i class="bi bi-lightning-fill"></i></div>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value" data-target="{{ clientes_prospectos }}">0</div>
+                    </div>
+                    <div class="stat-footer">
+                        <div class="progress-mini">
+                            <div class="progress-mini-bar" style="width: {{ clientes_prospectos|default:0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fila 2: Métricas financieras -->
+    <div class="dashboard-section">
+        <div class="stat-cards-container">
+            <div class="stat-card revenue animate__animated animate__fadeInUp animate__delay-3s">
+                <div class="stat-card-inner">
+                    <div class="stat-header">
+                        <div class="stat-title">Ingresos Totales</div>
+                        <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value">{{ ingresos_totales }}</div>
+                    </div>
+                    <div class="stat-footer">
+                        <div class="stat-growth positive">
+                            <i class="bi bi-graph-up-arrow"></i> 
+                            <span>12% vs mes anterior</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card sales animate__animated animate__fadeInUp animate__delay-3s">
+                <div class="stat-card-inner">
+                    <div class="stat-header">
+                        <div class="stat-title">Ventas Totales</div>
+                        <div class="stat-icon"><i class="bi bi-bag-check-fill"></i></div>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value" data-target="{{ ventas_totales }}">0</div>
+                    </div>
+                    <div class="stat-footer">
+                        <div class="stat-growth positive">
+                            <i class="bi bi-graph-up-arrow"></i> 
+                            <span>8% este mes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card new-clients animate__animated animate__fadeInUp animate__delay-3s">
+                <div class="stat-card-inner">
+                    <div class="stat-header">
+                        <div class="stat-title">Nuevos Clientes</div>
+                        <div class="stat-icon"><i class="bi bi-person-plus-fill"></i></div>
+                    </div>
+                    <div class="stat-body">
+                        <div class="stat-value" data-target="{{ nuevos_clientes }}">0</div>
+                    </div>
+                    <div class="stat-footer">
+                        <div class="stat-growth positive">
+                            <i class="bi bi-graph-up-arrow"></i> 
+                            <span>5 esta semana</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ventas del mes -->
+    <div class="dashboard-section animate__animated animate__fadeInUp animate__delay-4s">
+        <div class="month-sales-card">
+            <div class="month-sales-icon">
+                <i class="bi bi-calendar3"></i>
+            </div>
+            <div class="month-sales-content">
+                <div class="month-sales-title">Ventas del Mes</div>
+                <div class="month-sales-value">{{ ventas_mes }}</div>
+                <div class="month-sales-progress">
+                    <div class="month-progress-bar" style="width: 85%"></div>
+                </div>
+                <div class="month-sales-period">Mayo 2025</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="chart-section animate__animated animate__fadeInUp animate__delay-5s">
+        <div class="chart-card full-width">
+            <div class="chart-card-header">
+                <h3>Comparación de Ventas: Mes Anterior vs Mes Actual</h3>
+                <div class="chart-controls">
+                    <button class="chart-control-btn active" data-period="month">Mes</button>
+                    <button class="chart-control-btn" data-period="quarter">Trimestre</button>
+                    <button class="chart-control-btn" data-period="year">Año</button>
+                </div>
+            </div>
+            <div class="chart-card-body">
+                <div class="chart-container">{{ chart_ventas_html|safe }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-section animate__animated animate__fadeInUp animate__delay-6s">
+        <div class="chart-grid">
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Segmentación de Clientes</h3>
+                    <div class="chart-options">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </div>
+                </div>
+                <div class="chart-card-body">
+                    <div class="chart-container">{{ chart_html|safe }}</div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <h3>Pipeline de Ventas</h3>
+                    <div class="chart-options">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </div>
+                </div>
+                <div class="chart-card-body">
+                    <div class="chart-container">{{ chart_bar_html|safe }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-section animate__animated animate__fadeInUp animate__delay-7s">
+        <div class="chart-card full-width">
+            <div class="chart-card-header">
+                <h3>Pipeline de Ventas (Embudo)</h3>
+                <div class="chart-period">
+                    <span>Último trimestre</span>
+                    <i class="bi bi-calendar3-event"></i>
+                </div>
+            </div>
+            <div class="chart-card-body">
+                <div class="chart-container">{{ chart_funnel_html|safe }}</div>
+            </div>
+        </div>
+    </div>
 </div>
-<br>
-    <div class="row">   
-        <div class="col-md-4">
-            <div class="card-custom bg-success text-white">
-                <div class="card-header">Clientes Activos</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ clientes_activos }}</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card-custom bg-danger text-white">
-                <div class="card-header">Clientes Inactivos</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ clientes_inactivos }}</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card-custom bg-warning text-white">
-                <div class="card-header">Clientes Prospectos</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ clientes_prospectos }}</h5>
-                </div>
-            </div>
-        </div>
-    </div>
-    <br>
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card-custom bg-info text-white">
-                <div class="card-header">Ingresos Totales</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ ingresos_totales }}</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card-custom bg-secondary text-white">
-                <div class="card-header">Ventas Totales</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ ventas_totales }}</h5>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card-custom bg-dark text-white">
-                <div class="card-header">Nuevos Clientes</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ nuevos_clientes }}</h5>
-                </div>
-            </div>
-        </div>
-    </div> <br>
-    
-    <div class="row mt-4">
-        <div class="col-md-4">
-            <div class="card-custom bg-info text-white">
-                <div class="card-body">
-                    <h5 class="card-title">Ventas del Mes</h5>
-                    <p class="card-text">{{ ventas_mes }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card-custom">
-                <div class="card-body">
-                    <h5 class="card-title">Comparación de Ventas: Mes Anterior vs Mes Actual</h5>
-                    <div>{{ chart_ventas_html|safe }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card-custom">
-                <div class="card-body">
-                    <h5 class="card-title">Segmentación de Clientes</h5>
-                    <div>{{ chart_html|safe }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card-custom">
-                <div class="card-body">
-                    <h5 class="card-title">Pipeline de Ventas</h5>
-                    <div>{{ chart_bar_html|safe }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card-custom">
-                <div class="card-body">
-                    <h5 class="card-title">Pipeline de Ventas (Embudo)</h5>
-                    <div>{{ chart_funnel_html|safe }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-<br>
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        --secondary-gradient: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+        --active-client-gradient: linear-gradient(135deg, #27ae60, #2ecc71);
+        --inactive-client-gradient: linear-gradient(135deg, #c0392b, #e74c3c);
+        --prospect-client-gradient: linear-gradient(135deg, #f39c12, #f1c40f);
+        --revenue-gradient: linear-gradient(135deg, #2980b9, #3498db);
+        --sales-gradient: linear-gradient(135deg, #8e44ad, #9b59b6);
+        --new-client-gradient: linear-gradient(135deg, #1abc9c, #16a085);
+        --card-radius: 16px;
+        --card-shadow-light: 0 10px 20px rgba(0, 0, 0, 0.05);
+        --card-shadow-dark: 0 10px 20px rgba(0, 0, 0, 0.2);
+        --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
 
+    /* Estilos generales del dashboard */
+    .dashboard-container {
+        padding: 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Encabezado con línea de gradiente */
+    .section-header {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .text-gradient {
+        background-image: var(--primary-gradient);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+
+    .header-line {
+        height: 4px;
+        width: 80px;
+        background: var(--primary-gradient);
+        border-radius: 2px;
+        margin-top: 0.5rem;
+    }
+
+    /* Tarjeta principal de estadísticas */
+    .main-card-row {
+        margin-bottom: 2rem;
+    }
+
+    .main-stat-card {
+        background: var(--primary-gradient);
+        border-radius: var(--card-radius);
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        color: white;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s var(--transition-bounce);
+    }
+
+    .main-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .main-stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        pointer-events: none;
+    }
+
+    .stat-icon {
+        font-size: 3rem;
+        background: rgba(255, 255, 255, 0.2);
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-title {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .progress-container {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 4px;
+        width: 0;
+        transition: width 1.5s ease-in-out;
+    }
+
+    /* Secciones del dashboard */
+    .dashboard-section {
+        margin-bottom: 2rem;
+    }
+
+    /* Contenedor de tarjetas de estadísticas */
+    .stat-cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* Tarjetas de estadísticas */
+    .stat-card {
+        border-radius: var(--card-radius);
+        overflow: hidden;
+        transition: all 0.3s;
+        height: 100%;
+    }
+
+    .stat-card-inner {
+        padding: 1.5rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        z-index: 1;
+        transition: all 0.3s;
+    }
+
+    body.light-mode .stat-card {
+        background-color: white;
+        box-shadow: var(--card-shadow-light);
+    }
+
+    body.dark-mode .stat-card {
+        background-color: #2d3436;
+        box-shadow: var(--card-shadow-dark);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    body.light-mode .stat-card:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .stat-card:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .stat-header .stat-icon {
+        font-size: 1.2rem;
+        width: 40px;
+        height: 40px;
+    }
+
+    .stat-body {
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .stat-footer {
+        margin-top: 1rem;
+    }
+
+    /* Progress bar mini para las tarjetas */
+    .progress-mini {
+        height: 4px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    body.dark-mode .progress-mini {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .progress-mini-bar {
+        height: 100%;
+        border-radius: 2px;
+        width: 0;
+        transition: width 1.5s ease-in-out;
+    }
+
+    /* Colores de las tarjetas */
+    .active-clients .stat-icon, 
+    .active-clients .progress-mini-bar {
+        background: var(--active-client-gradient);
+    }
+
+    .inactive-clients .stat-icon, 
+    .inactive-clients .progress-mini-bar {
+        background: var(--inactive-client-gradient);
+    }
+
+    .prospect-clients .stat-icon, 
+    .prospect-clients .progress-mini-bar {
+        background: var(--prospect-client-gradient);
+    }
+
+    .revenue .stat-icon {
+        background: var(--revenue-gradient);
+    }
+
+    .sales .stat-icon {
+        background: var(--sales-gradient);
+    }
+
+    .new-clients .stat-icon {
+        background: var(--new-client-gradient);
+    }
+
+    /* Indicadores de crecimiento */
+    .stat-growth {
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stat-growth.positive {
+        color: #27ae60;
+    }
+
+    .stat-growth.negative {
+        color: #e74c3c;
+    }
+
+    body.dark-mode .stat-growth.positive {
+        color: #2ecc71;
+    }
+
+    body.dark-mode .stat-growth.negative {
+        color: #e74c3c;
+    }
+
+    /* Tarjeta de ventas del mes */
+    .month-sales-card {
+        background: var(--secondary-gradient);
+        border-radius: var(--card-radius);
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        color: white;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s var(--transition-bounce);
+    }
+
+    .month-sales-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .month-sales-icon {
+        font-size: 2rem;
+        background: rgba(255, 255, 255, 0.2);
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .month-sales-content {
+        flex: 1;
+    }
+
+    .month-sales-title {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+
+    .month-sales-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .month-sales-progress {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+
+    .month-progress-bar {
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 3px;
+        width: 0;
+        transition: width 1.5s ease-in-out;
+    }
+
+    .month-sales-period {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    /* Sección de gráficos */
+    .chart-section {
+        margin-bottom: 2rem;
+    }
+
+    .chart-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .chart-card {
+        border-radius: var(--card-radius);
+        overflow: hidden;
+        transition: all 0.3s;
+    }
+
+    body.light-mode .chart-card {
+        background-color: white;
+        box-shadow: var(--card-shadow-light);
+    }
+
+    body.dark-mode .chart-card {
+        background-color: #2d3436;
+        box-shadow: var(--card-shadow-dark);
+    }
+
+    .chart-card:hover {
+        transform: translateY(-5px);
+    }
+
+    body.light-mode .chart-card:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .chart-card:hover {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .chart-card.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .chart-card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    body.dark-mode .chart-card-header {
+        border-bottom-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .chart-card-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .chart-card-body {
+        padding: 1.5rem;
+    }
+
+    .chart-container {
+        height: 100%;
+        min-height: 250px;
+    }
+
+    /* Controles de los gráficos */
+    .chart-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .chart-control-btn {
+        border: none;
+        background: transparent;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    body.light-mode .chart-control-btn {
+        color: var(--dark-text);
+    }
+
+    body.dark-mode .chart-control-btn {
+        color: var(--light-text);
+    }
+
+    .chart-control-btn.active {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .chart-options {
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .chart-options:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    body.dark-mode .chart-options:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .chart-period {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+    /* Estilos responsive */
+    @media (max-width: 992px) {
+        .chart-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .main-stat-card {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .month-sales-card {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .dashboard-container {
+            padding: 1rem;
+        }
+        
+        .stat-cards-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-card-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .chart-controls {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+
+    /* Animaciones adicionales */
+    @keyframes pulse-shadow {
+        0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(52, 152, 219, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+    }
+
+    .pulse-animation {
+        animation: pulse-shadow 2s infinite;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .float-animation {
+        animation: float 5s ease-in-out infinite;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animación de contadores para valores numéricos
+        const animateValue = (element, start, end, duration) => {
+            if (!element) return;
+            
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                element.textContent = value;
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        };
+
+        // Iniciar las animaciones de los contadores
+        document.querySelectorAll('.stat-value[data-target]').forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target'), 10) || 0;
+            animateValue(counter, 0, target, 2000);
+        });
+
+        // Animar las barras de progreso
+        setTimeout(() => {
+            document.querySelectorAll('.progress-bar, .month-progress-bar, .progress-mini-bar').forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        }, 500);
+
+        // Funcionalidad para los controles de los gráficos
+        document.querySelectorAll('.chart-control-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Eliminar clase active de todos los botones en el mismo grupo
+                this.parentNode.querySelectorAll('.chart-control-btn').forEach(b => {
+                    b.classList.remove('active');
+                });
+                // Agregar clase active al botón clickeado
+                this.classList.add('active');
+                
+                // Aquí podrías añadir la lógica para cambiar los datos del gráfico
+                // basado en el período seleccionado (mes, trimestre, año)
+                const period = this.getAttribute('data-period');
+                console.log(`Cambiando vista a: ${period}`);
+                
+                // Efecto visual de actualización
+                const chartContainer = this.closest('.chart-card').querySelector('.chart-container');
+                chartContainer.style.opacity = '0.5';
+                setTimeout(() => {
+                    chartContainer.style.opacity = '1';
+                }, 300);
+            });
+        });
+
+        // Efecto de hover para las tarjetas de estadísticas
+        const statCards = document.querySelectorAll('.stat-card, .chart-card');
+        statCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Animación flotante para íconos principales
+        const mainIcons = document.querySelectorAll('.main-stat-card .stat-icon, .month-sales-card .month-sales-icon');
+        mainIcons.forEach(icon => {
+            icon.classList.add('float-animation');
+        });
+    });
+</script>
 {% endblock %}

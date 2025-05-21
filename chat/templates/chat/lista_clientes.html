@@ -5,45 +5,1445 @@
 {% block page_title %}Lista de Clientes{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1>Lista de Clientes</h1>
-    <a href="{% url 'registrar_cliente' %}" class="btn btn-primary mb-3">Registrar Cliente</a>
-    <div class="table-responsive">
-        <table class="table table-striped table-hover table-bordered table-custom">
-            <thead class="thead-dark">
-                <tr>
-                    <th>DNI</th>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Teléfono</th>
-                    <th>Dirección</th>
-                    <th>Categoría</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cliente in clientes %}
+<div class="clientes-dashboard animate__animated animate__fadeIn">
+    <!-- Cabecera con estadísticas -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1 class="display-5 text-gradient">Clientes</h1>
+                <div class="header-line"></div>
+            </div>
+            <div class="header-actions">
+                <div class="search-container">
+                    <input type="text" id="search-client" class="search-input" placeholder="Buscar cliente...">
+                    <i class="bi bi-search search-icon"></i>
+                </div>
+                <a href="{% url 'registrar_cliente' %}" class="btn-add-client">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span>Nuevo Cliente</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="stats-container animate__animated animate__fadeInUp animate__delay-1s">
+            <div class="stat-card total">
+                <div class="stat-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ clientes|length }}</div>
+                    <div class="stat-label">Total Clientes</div>
+                </div>
+            </div>
+            
+            <div class="stat-card active">
+                <div class="stat-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ clientes|dictsort:"estado"|join:""|cut:"Activo"|length }}</div>
+                    <div class="stat-label">Activos</div>
+                </div>
+            </div>
+            
+            <div class="stat-card inactive">
+                <div class="stat-icon">
+                    <i class="bi bi-x-circle-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ clientes|dictsort:"estado"|join:""|cut:"Inactivo"|length }}</div>
+                    <div class="stat-label">Inactivos</div>
+                </div>
+            </div>
+            
+            <div class="stat-card premium">
+                <div class="stat-icon">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ clientes|dictsort:"categoria"|join:""|cut:"Premium"|length }}</div>
+                    <div class="stat-label">Premium</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="filters-tags animate__animated animate__fadeInUp animate__delay-2s">
+            <div class="filter-label">Filtros:</div>
+            <div class="tags-container">
+                <div class="filter-tag active" data-filter="all">
+                    <span>Todos</span>
+                    <i class="bi bi-x"></i>
+                </div>
+                <div class="filter-tag" data-filter="categoria-Premium">
+                    <span>Premium</span>
+                    <i class="bi bi-x"></i>
+                </div>
+                <div class="filter-tag" data-filter="categoria-Regular">
+                    <span>Regular</span>
+                    <i class="bi bi-x"></i>
+                </div>
+                <div class="filter-tag" data-filter="estado-Activo">
+                    <span>Activos</span>
+                    <i class="bi bi-x"></i>
+                </div>
+                <div class="filter-tag" data-filter="estado-Inactivo">
+                    <span>Inactivos</span>
+                    <i class="bi bi-x"></i>
+                </div>
+            </div>
+            <button id="clearFilters" class="clear-filters">Limpiar filtros</button>
+        </div>
+    </div>
+    
+    <!-- Contenedor principal de tarjetas -->
+    <div class="clients-container">
+        <div class="client-grid animate__animated animate__fadeInUp animate__delay-3s">
+            {% for cliente in clientes %}
+            <div class="client-card" data-nombre="{{ cliente.nombre|lower }}" data-dni="{{ cliente.dni }}" data-email="{{ cliente.email|lower }}" data-categoria="{{ cliente.categoria }}" data-estado="{{ cliente.estado }}">
+                <div class="client-status {{ cliente.estado|lower }}">
+                    <span class="status-dot"></span>
+                    <span class="status-text">{{ cliente.estado }}</span>
+                </div>
+                
+                <div class="client-header">
+                    <div class="client-avatar">
+                        {% if cliente.id|divisibleby:"3" %}
+                            <img src="https://ui-avatars.com/api/?name={{ cliente.nombre|urlencode }}&background=0D8ABC&color=fff" alt="{{ cliente.nombre }}">
+                        {% elif cliente.id|divisibleby:"2" %}
+                            <img src="https://ui-avatars.com/api/?name={{ cliente.nombre|urlencode }}&background=e74c3c&color=fff" alt="{{ cliente.nombre }}">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ cliente.nombre|urlencode }}&background=2ecc71&color=fff" alt="{{ cliente.nombre }}">
+                        {% endif %}
+                    </div>
+                    <div class="client-info">
+                        <h3 class="client-name">{{ cliente.nombre }}</h3>
+                        <div class="client-category {{ cliente.categoria|lower }}">{{ cliente.categoria }}</div>
+                    </div>
+                </div>
+                
+                <div class="client-details">
+                    <div class="detail-item">
+                        <i class="bi bi-person-badge"></i>
+                        <span>{{ cliente.dni }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-envelope"></i>
+                        <span>{{ cliente.email }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-telephone"></i>
+                        <span>{{ cliente.telefono }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-geo-alt"></i>
+                        <span>{{ cliente.direccion }}</span>
+                    </div>
+                </div>
+                
+                <div class="client-meta">
+                    <div class="meta-item">
+                        <span>Cliente desde:</span>
+                        <strong>{% now "d M, Y" %}</strong>
+                    </div>
+                    <div class="meta-item">
+                        <span>Última actividad:</span>
+                        <strong>{% now "d M, Y" %}</strong>
+                    </div>
+                </div>
+                
+                <div class="client-actions">
+                    <a href="{% url 'detalle_cliente' cliente.id %}" class="action-btn view">
+                        <i class="bi bi-eye-fill"></i>
+                        <span>Ver</span>
+                    </a>
+                    <a href="{% url 'editar_cliente' cliente.id %}" class="action-btn edit">
+                        <i class="bi bi-pencil-fill"></i>
+                        <span>Editar</span>
+                    </a>
+                    <button class="action-btn delete" onclick="showDeleteModal('{{ cliente.id }}', '{{ cliente.nombre }}')">
+                        <i class="bi bi-trash-fill"></i>
+                        <span>Eliminar</span>
+                    </button>
+                </div>
+                
+                <div class="client-footer">
+                    <div class="quick-actions">
+                        <a href="#" class="quick-action-btn" title="Enviar mensaje">
+                            <i class="bi bi-chat-dots-fill"></i>
+                        </a>
+                        <a href="#" class="quick-action-btn" title="Llamar">
+                            <i class="bi bi-telephone-fill"></i>
+                        </a>
+                        <a href="#" class="quick-action-btn" title="Enviar email">
+                            <i class="bi bi-envelope-fill"></i>
+                        </a>
+                        <a href="#" class="quick-action-btn" title="Ver historial">
+                            <i class="bi bi-clock-history"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-clients">
+                <div class="no-results-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h3>No hay clientes registrados</h3>
+                <p>Comienza registrando un nuevo cliente para gestionar tu cartera</p>
+                <a href="{% url 'registrar_cliente' %}" class="btn-add-empty">Registrar primer cliente</a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div id="no-results" class="no-clients animate__animated animate__fadeIn" style="display: none;">
+            <div class="no-results-icon">
+                <i class="bi bi-search"></i>
+            </div>
+            <h3>No se encontraron clientes</h3>
+            <p>No hay clientes que coincidan con tu búsqueda</p>
+            <button id="resetSearch" class="btn-reset-search">Mostrar todos los clientes</button>
+        </div>
+    </div>
+    
+    <!-- Vista de tabla alternativa -->
+    <div class="view-toggle-container animate__animated animate__fadeInUp animate__delay-2s">
+        <button class="view-toggle active" data-view="grid">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+        </button>
+        <button class="view-toggle" data-view="table">
+            <i class="bi bi-table"></i>
+        </button>
+    </div>
+    
+    <div class="table-view animate__animated animate__fadeIn" style="display: none;">
+        <div class="table-responsive">
+            <table class="table table-hover client-table">
+                <thead>
                     <tr>
+                        <th class="sortable" data-sort="nombre">Nombre <i class="bi bi-arrow-down-up"></i></th>
+                        <th class="sortable" data-sort="dni">DNI <i class="bi bi-arrow-down-up"></i></th>
+                        <th class="sortable" data-sort="email">Email <i class="bi bi-arrow-down-up"></i></th>
+                        <th>Teléfono</th>
+                        <th>Dirección</th>
+                        <th class="sortable" data-sort="categoria">Categoría <i class="bi bi-arrow-down-up"></i></th>
+                        <th class="sortable" data-sort="estado">Estado <i class="bi bi-arrow-down-up"></i></th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes %}
+                    <tr class="table-row" data-nombre="{{ cliente.nombre|lower }}" data-dni="{{ cliente.dni }}" data-email="{{ cliente.email|lower }}" data-categoria="{{ cliente.categoria }}" data-estado="{{ cliente.estado }}">
+                        <td>
+                            <div class="table-client-info">
+                                <div class="table-avatar">
+                                    {% if cliente.id|divisibleby:"3" %}
+                                    <img src="https://ui-avatars.com/api/?name={{ cliente.nombre|urlencode }}&background=0D8ABC&color=fff" alt="{{ cliente.nombre }}">
+                                    {% elif cliente.id|divisibleby:"2" %}
+                                    <img src="https://ui-avatars.com/api/?name={{ cliente.nombre|urlencode }}&background=e74c3c&color=fff" alt="{{ cliente.nombre }}">
+                                    {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ cliente.nombre|urlencode }}&background=2ecc71&color=fff" alt="{{ cliente.nombre }}">
+                                    {% endif %}
+                                </div>
+                                {{ cliente.nombre }}
+                            </div>
+                        </td>
                         <td>{{ cliente.dni }}</td>
-                        <td>{{ cliente.nombre }}</td>
                         <td>{{ cliente.email }}</td>
                         <td>{{ cliente.telefono }}</td>
-                        <td>{{ cliente.direccion }}</td>
-                        <td>{{ cliente.categoria }}</td>
-                        <td>{{ cliente.estado }}</td>
+                        <td class="truncate-text">{{ cliente.direccion }}</td>
                         <td>
-                            <a href="{% url 'detalle_cliente' cliente.id %}" class="btn btn-info btn-sm">Ver</a>
-                            <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-primary btn-sm">Editar</a>
-                            <form action="{% url 'eliminar_cliente' cliente.id %}" method="post" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                            </form>
+                            <span class="badge category-badge {{ cliente.categoria|lower }}">{{ cliente.categoria }}</span>
+                        </td>
+                        <td>
+                            <span class="badge status-badge {{ cliente.estado|lower }}">{{ cliente.estado }}</span>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{% url 'detalle_cliente' cliente.id %}" class="table-action-btn view" title="Ver detalles">
+                                    <i class="bi bi-eye-fill"></i>
+                                </a>
+                                <a href="{% url 'editar_cliente' cliente.id %}" class="table-action-btn edit" title="Editar cliente">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <button class="table-action-btn delete" title="Eliminar cliente" onclick="showDeleteModal('{{ cliente.id }}', '{{ cliente.nombre }}')">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<!-- Modal de confirmación para eliminar cliente -->
+<div class="modal fade" id="deleteClientModal" tabindex="-1" aria-labelledby="deleteClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteClientModalLabel">Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-icon-container">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <p>¿Estás seguro de que deseas eliminar al cliente <strong id="clientName"></strong>?</p>
+                <p class="text-muted">Esta acción no se puede deshacer. Se eliminarán todos los datos e historial asociado a este cliente.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteClientForm" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar cliente</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        --secondary-gradient: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+        --card-radius: 16px;
+        --card-shadow-light: 0 8px 20px rgba(0, 0, 0, 0.05);
+        --card-shadow-dark: 0 8px 20px rgba(0, 0, 0, 0.2);
+        --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+        
+        --category-premium: #f1c40f;
+        --category-regular: #3498db;
+        
+        --status-activo: #2ecc71;
+        --status-inactivo: #e74c3c;
+    }
+
+    /* Dashboard general */
+    .clientes-dashboard {
+        padding: 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Encabezado con gradiente */
+    .dashboard-header {
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .header-title {
+        position: relative;
+    }
+
+    .text-gradient {
+        background-image: var(--primary-gradient);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin: 0;
+    }
+
+    .header-line {
+        height: 4px;
+        width: 80px;
+        background: var(--primary-gradient);
+        border-radius: 2px;
+        margin-top: 0.5rem;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    /* Buscador */
+    .search-container {
+        position: relative;
+        width: 280px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.65rem 1rem 0.65rem 2.5rem;
+        border-radius: 30px;
+        border: 1px solid #ced4da;
+        transition: all 0.3s;
+    }
+
+    body.dark-mode .search-input {
+        background-color: #343a40;
+        border-color: #495057;
+        color: var(--light-text);
+    }
+
+    .search-input:focus {
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+        border-color: var(--secondary-color);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+
+    /* Botón para añadir cliente */
+    .btn-add-client {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.25rem;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-add-client:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    /* Estadísticas */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        border-radius: var(--card-radius);
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s;
+    }
+
+    body.light-mode .stat-card {
+        background-color: white;
+        box-shadow: var(--card-shadow-light);
+    }
+
+    body.dark-mode .stat-card {
+        background-color: #2d3436;
+        box-shadow: var(--card-shadow-dark);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .stat-card.total .stat-icon {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+    }
+
+    .stat-card.active .stat-icon {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+
+    .stat-card.inactive .stat-icon {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+
+    .stat-card.premium .stat-icon {
+        background: linear-gradient(135deg, #f1c40f, #f39c12);
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.7;
+        margin-top: 0.25rem;
+    }
+
+    /* Filtros */
+    .filters-tags {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-label {
+        font-weight: 500;
+    }
+
+    .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filter-tag {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    body.light-mode .filter-tag {
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+
+    body.dark-mode .filter-tag {
+        background-color: #343a40;
+        color: #e9ecef;
+    }
+
+    .filter-tag.active {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+
+    .filter-tag i {
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+
+    .filter-tag:hover {
+        background-color: rgba(52, 152, 219, 0.2);
+    }
+
+    .filter-tag.active:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .clear-filters {
+        background: transparent;
+        border: none;
+        color: var(--secondary-color);
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        transition: background-color 0.2s;
+    }
+
+    .clear-filters:hover {
+        background-color: rgba(52, 152, 219, 0.1);
+    }
+
+    /* Vista de cuadrícula de clientes */
+    .client-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .client-card {
+        border-radius: var(--card-radius);
+        overflow: hidden;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    body.light-mode .client-card {
+        background-color: white;
+        box-shadow: var(--card-shadow-light);
+    }
+
+    body.dark-mode .client-card {
+        background-color: #2d3436;
+        box-shadow: var(--card-shadow-dark);
+    }
+
+    .client-card:hover {
+        transform: translateY(-5px);
+    }
+
+    body.light-mode .client-card:hover {
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .client-card:hover {
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Indicador de estado */
+    .client-status {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .client-status.activo {
+        background-color: rgba(46, 204, 113, 0.15);
+        color: var(--status-activo);
+    }
+
+    .client-status.inactivo {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: var(--status-inactivo);
+    }
+
+    body.dark-mode .client-status.activo {
+        background-color: rgba(46, 204, 113, 0.25);
+    }
+
+    body.dark-mode .client-status.inactivo {
+        background-color: rgba(231, 76, 60, 0.25);
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .status-text {
+        font-weight: 500;
+    }
+
+    .client-status.activo .status-dot {
+        background-color: var(--status-activo);
+    }
+
+    .client-status.inactivo .status-dot {
+        background-color: var(--status-inactivo);
+    }
+
+    /* Encabezado del cliente */
+    .client-header {
+        padding: 1.5rem 1.5rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .client-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .client-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .client-info {
+        flex: 1;
+    }
+
+    .client-name {
+        margin: 0 0 0.35rem;
+        font-size: 1.15rem;
+        font-weight: 600;
+    }
+
+    .client-category {
+        display: inline-block;
+        padding: 0.2rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .client-category.premium {
+        background-color: rgba(241, 196, 15, 0.15);
+        color: var(--category-premium);
+    }
+
+    .client-category.regular {
+        background-color: rgba(52, 152, 219, 0.15);
+        color: var(--category-regular);
+    }
+
+    body.dark-mode .client-category.premium {
+        background-color: rgba(241, 196, 15, 0.25);
+    }
+
+    body.dark-mode .client-category.regular {
+        background-color: rgba(52, 152, 219, 0.25);
+    }
+
+    /* Detalles del cliente */
+    .client-details {
+        padding: 0 1.5rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .detail-item i {
+        color: var(--secondary-color);
+        font-size: 1rem;
+    }
+
+    .detail-item span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Metadatos del cliente */
+    .client-meta {
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        border-top: 1px solid;
+        margin-top: 1rem;
+        font-size: 0.85rem;
+    }
+
+    body.light-mode .client-meta {
+        border-top-color: rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .client-meta {
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .meta-item span {
+        opacity: 0.7;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Acciones del cliente */
+    .client-actions {
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .action-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        border: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        background-color: transparent;
+    }
+
+    .action-btn.view {
+        color: var(--secondary-color);
+    }
+
+    .action-btn.edit {
+        color: #f39c12;
+    }
+
+    .action-btn.delete {
+        color: var(--accent-color);
+    }
+
+    .action-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    body.dark-mode .action-btn:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Pie de tarjeta */
+    .client-footer {
+        padding: 0.75rem 1.5rem;
+        border-top: 1px solid;
+    }
+
+    body.light-mode .client-footer {
+        border-top-color: rgba(0, 0, 0, 0.1);
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    body.dark-mode .client-footer {
+        border-top-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .quick-actions {
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .quick-action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: inherit;
+        opacity: 0.6;
+        transition: all 0.3s;
+    }
+
+    .quick-action-btn:hover {
+        opacity: 1;
+        background-color: rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    body.dark-mode .quick-action-btn:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Mensaje de "no hay clientes" */
+    .no-clients {
+        text-align: center;
+        padding: 3rem;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .no-results-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.2;
+    }
+
+    .no-clients p {
+        opacity: 0.7;
+        margin-bottom: 1.5rem;
+    }
+
+    .btn-add-empty, .btn-reset-search {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary-gradient);
+        color: white;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-add-empty:hover, .btn-reset-search:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+
+    /* Selector de vista */
+    .view-toggle-container {
+        position: fixed;
+        right: 2rem;
+        bottom: 2rem;
+        display: flex;
+        gap: 0.5rem;
+        z-index: 100;
+    }
+
+    .view-toggle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    body.light-mode .view-toggle {
+        background-color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        color: #6c757d;
+    }
+
+    body.dark-mode .view-toggle {
+        background-color: #2d3436;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+        color: #adb5bd;
+    }
+
+    .view-toggle.active {
+        background: var(--primary-gradient);
+        color: white;
+    }
+
+    .view-toggle:hover {
+        transform: translateY(-3px);
+    }
+
+    /* Vista de tabla */
+    .table-view {
+        margin-top: 1.5rem;
+    }
+
+    .client-table {
+        border-radius: var(--card-radius);
+        overflow: hidden;
+    }
+
+    body.light-mode .client-table {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    body.dark-mode .client-table {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    body.light-mode .client-table thead {
+        background-color: #f8f9fa;
+    }
+
+    body.dark-mode .client-table thead {
+        background-color: #343a40;
+    }
+
+    .client-table th {
+        font-weight: 600;
+        padding: 1rem;
+    }
+
+    .client-table td {
+        padding: 0.75rem 1rem;
+        vertical-align: middle;
+    }
+
+    .sortable {
+        cursor: pointer;
+    }
+
+    .sortable i {
+        font-size: 0.8rem;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+    }
+
+    .sortable:hover i {
+        opacity: 1;
+    }
+
+    .table-client-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .table-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .table-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .truncate-text {
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.75rem;
+    }
+
+    .category-badge.premium {
+        background-color: rgba(241, 196, 15, 0.15);
+        color: var(--category-premium);
+    }
+
+    .category-badge.regular {
+        background-color: rgba(52, 152, 219, 0.15);
+        color: var(--category-regular);
+    }
+
+    .status-badge.activo {
+        background-color: rgba(46, 204, 113, 0.15);
+        color: var(--status-activo);
+    }
+
+    .status-badge.inactivo {
+        background-color: rgba(231, 76, 60, 0.15);
+        color: var(--status-inactivo);
+    }
+
+    body.dark-mode .category-badge.premium {
+        background-color: rgba(241, 196, 15, 0.25);
+    }
+
+    body.dark-mode .category-badge.regular {
+        background-color: rgba(52, 152, 219, 0.25);
+    }
+
+    body.dark-mode .status-badge.activo {
+        background-color: rgba(46, 204, 113, 0.25);
+    }
+
+    body.dark-mode .status-badge.inactivo {
+        background-color: rgba(231, 76, 60, 0.25);
+    }
+
+    .table-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .table-action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: inherit;
+    }
+
+    .table-action-btn.view {
+        color: var(--secondary-color);
+    }
+
+    .table-action-btn.edit {
+        color: #f39c12;
+    }
+
+    .table-action-btn.delete {
+        color: var(--accent-color);
+    }
+
+    .table-action-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        transform: scale(1.1);
+    }
+
+    body.dark-mode .table-action-btn:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Modal de confirmación */
+    .delete-icon-container {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .delete-icon-container i {
+        font-size: 3.5rem;
+        color: var(--accent-color);
+    }
+
+    body.dark-mode .modal-content {
+        background-color: #2d3436;
+        color: var(--light-text);
+    }
+
+    body.dark-mode .modal-header,
+    body.dark-mode .modal-footer {
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode .text-muted {
+        color: #adb5bd !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .client-details {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .client-actions {
+            flex-direction: column;
+        }
+        
+        .action-btn {
+            width: 100%;
+            justify-content: flex-start;
+        }
+        
+        .view-toggle-container {
+            right: 1rem;
+            bottom: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .header-content {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .search-container {
+            width: 100%;
+        }
+        
+        .header-actions {
+            width: 100%;
+        }
+        
+        .btn-add-client {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Animaciones */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .animate__fadeIn {
+        animation: fadeIn 0.5s;
+    }
+
+    @keyframes fadeInUp {
+        from { 
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to { 
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate__fadeInUp {
+        animation: fadeInUp 0.5s;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Referencias a elementos DOM
+        const searchInput = document.getElementById('search-client');
+        const clientCards = document.querySelectorAll('.client-card');
+        const tableRows = document.querySelectorAll('.table-row');
+        const noResults = document.getElementById('no-results');
+        const resetSearch = document.getElementById('resetSearch');
+        const filterTags = document.querySelectorAll('.filter-tag');
+        const clearFilters = document.getElementById('clearFilters');
+        const viewToggles = document.querySelectorAll('.view-toggle');
+        const gridView = document.querySelector('.client-grid');
+        const tableView = document.querySelector('.table-view');
+        const sortableHeaders = document.querySelectorAll('.sortable');
+        
+        // Búsqueda en tiempo real
+        searchInput.addEventListener('input', function() {
+            filterClients();
+        });
+        
+        // Reiniciar búsqueda
+        if (resetSearch) {
+            resetSearch.addEventListener('click', function() {
+                searchInput.value = '';
+                filterClients();
+                
+                // Reiniciar filtros
+                filterTags.forEach(tag => {
+                    tag.classList.remove('active');
+                });
+                document.querySelector('[data-filter="all"]').classList.add('active');
+            });
+        }
+        
+        // Filtrar por tags
+        filterTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Si es el filtro "Todos", desactivar los demás
+                if (this.dataset.filter === 'all') {
+                    filterTags.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                } else {
+                    // Desactivar el filtro "Todos"
+                    document.querySelector('[data-filter="all"]').classList.remove('active');
+                    
+                    // Toggle del filtro actual
+                    this.classList.toggle('active');
+                    
+                    // Si no hay filtros activos, activar "Todos"
+                    if (!document.querySelector('.filter-tag.active')) {
+                        document.querySelector('[data-filter="all"]').classList.add('active');
+                    }
+                }
+                
+                filterClients();
+            });
+        });
+        
+        // Limpiar todos los filtros
+        clearFilters.addEventListener('click', function() {
+            filterTags.forEach(tag => {
+                tag.classList.remove('active');
+            });
+            document.querySelector('[data-filter="all"]').classList.add('active');
+            
+            searchInput.value = '';
+            filterClients();
+        });
+        
+        // Cambiar entre vista de cuadrícula y tabla
+        viewToggles.forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                // Quitar la clase active de todos los toggles
+                viewToggles.forEach(t => t.classList.remove('active'));
+                
+                // Agregar la clase active al toggle actual
+                this.classList.add('active');
+                
+                // Mostrar/ocultar vistas
+                if (this.dataset.view === 'grid') {
+                    gridView.style.display = 'block';
+                    tableView.style.display = 'none';
+                } else {
+                    gridView.style.display = 'none';
+                    tableView.style.display = 'block';
+                }
+            });
+        });
+        
+        // Ordenamiento de tabla
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', function() {
+                const sortBy = this.dataset.sort;
+                const isAscending = this.classList.contains('asc');
+                
+                // Quitar clases de ordenamiento de todos los headers
+                sortableHeaders.forEach(h => {
+                    h.classList.remove('asc', 'desc');
+                });
+                
+                // Establecer la dirección de ordenamiento
+                if (isAscending) {
+                    this.classList.add('desc');
+                } else {
+                    this.classList.add('asc');
+                }
+                
+                // Ordenar filas
+                sortTableRows(sortBy, !isAscending);
+            });
+        });
+        
+        // Función para filtrar clientes
+        function filterClients() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let activeFilters = [];
+            
+            // Obtener filtros activos
+            document.querySelectorAll('.filter-tag.active').forEach(tag => {
+                if (tag.dataset.filter !== 'all') {
+                    activeFilters.push(tag.dataset.filter);
+                }
+            });
+            
+            // Flag para verificar si hay coincidencias
+            let hasMatches = false;
+            
+            // Filtrar tarjetas
+            clientCards.forEach(card => {
+                const nombre = card.dataset.nombre;
+                const dni = card.dataset.dni;
+                const email = card.dataset.email;
+                const categoria = card.dataset.categoria.toLowerCase();
+                const estado = card.dataset.estado.toLowerCase();
+                
+                // Verificar coincidencia con término de búsqueda
+                const matchesSearch = searchTerm === '' || 
+                    nombre.includes(searchTerm) || 
+                    dni.includes(searchTerm) || 
+                    email.includes(searchTerm);
+                
+                // Verificar coincidencia con filtros activos
+                let matchesFilters = activeFilters.length === 0;
+                
+                if (!matchesFilters) {
+                    for (let filter of activeFilters) {
+                        if (filter === `categoria-${categoria}` || filter === `estado-${estado}`) {
+                            matchesFilters = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Mostrar/ocultar tarjeta
+                if (matchesSearch && matchesFilters) {
+                    card.style.display = '';
+                    hasMatches = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Filtrar filas de tabla
+            tableRows.forEach(row => {
+                const nombre = row.dataset.nombre;
+                const dni = row.dataset.dni;
+                const email = row.dataset.email;
+                const categoria = row.dataset.categoria.toLowerCase();
+                const estado = row.dataset.estado.toLowerCase();
+                
+                // Verificar coincidencia con término de búsqueda
+                const matchesSearch = searchTerm === '' || 
+                    nombre.includes(searchTerm) || 
+                    dni.includes(searchTerm) || 
+                    email.includes(searchTerm);
+                
+                // Verificar coincidencia con filtros activos
+                let matchesFilters = activeFilters.length === 0;
+                
+                if (!matchesFilters) {
+                    for (let filter of activeFilters) {
+                        if (filter === `categoria-${categoria}` || filter === `estado-${estado}`) {
+                            matchesFilters = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // Mostrar/ocultar fila
+                if (matchesSearch && matchesFilters) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Mostrar mensaje de "no hay resultados" si es necesario
+            if (!hasMatches) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        }
+        
+        // Función para ordenar filas de tabla
+        function sortTableRows(property, ascending) {
+            const tbody = document.querySelector('.client-table tbody');
+            const rows = Array.from(tbody.querySelectorAll('.table-row'));
+            
+            // Ordenar filas
+            rows.sort((a, b) => {
+                let valueA = a.dataset[property].toLowerCase();
+                let valueB = b.dataset[property].toLowerCase();
+                
+                if (ascending) {
+                    return valueA.localeCompare(valueB);
+                } else {
+                    return valueB.localeCompare(valueA);
+                }
+            });
+            
+            // Reordenar filas en el DOM
+            rows.forEach(row => {
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Función para mostrar modal de confirmación de eliminación
+        window.showDeleteModal = function(clientId, clientName) {
+            const modal = document.getElementById('deleteClientModal');
+            const form = document.getElementById('deleteClientForm');
+            const nameEl = document.getElementById('clientName');
+            
+            // Actualizar el nombre del cliente y la acción del formulario
+            nameEl.textContent = clientName;
+            form.action = `{% url 'eliminar_cliente' 0 %}`.replace('0', clientId);
+            
+            // Mostrar el modal
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+        };
+    });
+</script>
 {% endblock %}

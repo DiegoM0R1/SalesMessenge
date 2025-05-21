@@ -39,22 +39,44 @@ class ClienteForm(forms.ModelForm):
 class MensajeGrupoForm(forms.ModelForm):
     class Meta:
         model = MensajeGrupo
-        fields = ['contenido', 'tipo', 'archivo']
+        fields = ['contenido', 'tipo', 'archivo'] # 'emisor' y 'grupo' se deben asignar en la vista
         widgets = {
-            'contenido': forms.TextInput(attrs={
-                'class': 'form-control',
+            'contenido': forms.Textarea(attrs={
+                'id': 'id_contenido', # Para que coincida con tu JS si lo referencia por ID
+                'class': 'input-wrapper-textarea', # Usa una clase específica para el textarea
                 'placeholder': 'Escribe un mensaje...',
-                'style': 'padding: 10px; border: 1px solid #ccc; border-radius: 5px;'
+                'rows': '1'
             }),
             'tipo': forms.Select(attrs={
-                'class': 'form-control',
-                'style': 'padding: 10px; border: 1px solid #ccc; border-radius: 5px;'
+                'id': 'id_tipo',
+                'class': 'd-none' # O tu clase CSS para ocultarlo
             }),
             'archivo': forms.ClearableFileInput(attrs={
-                'class': 'form-control-file',
-                'style': 'padding: 10px; border: 1px solid #ccc; border-radius: 5px;'
+                'id': 'id_archivo',
+                'class': 'd-none' # O tu clase CSS para ocultarlo
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # El default del modelo ya debería establecer 'tipo' a 'texto'.
+        # No necesitas 'initial' aquí si el modelo está correcto.
+
+        # Campos no requeridos individualmente, validados en clean()
+        self.fields['contenido'].required = False
+        self.fields['archivo'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        contenido = cleaned_data.get('contenido')
+        archivo = cleaned_data.get('archivo')
+        # tipo = cleaned_data.get('tipo') # Ya debería ser 'texto' si no se cambió por JS
+
+        if not contenido and not archivo:
+            raise forms.ValidationError("Debes escribir un mensaje o adjuntar un archivo.")
+        
+        # Puedes añadir más validaciones aquí si es necesario
+        return cleaned_data
 
 
 class MensajeForm(forms.ModelForm):
@@ -62,20 +84,61 @@ class MensajeForm(forms.ModelForm):
         model = Mensaje
         fields = ['contenido', 'tipo', 'archivo']
         widgets = {
-            'contenido': forms.TextInput(attrs={
-                'class': 'form-control',
+            'contenido': forms.Textarea(attrs={ # Cambiado a Textarea
+                'id': 'id_contenido', # El JS usa este ID
+                'class': 'form-control', # O la clase que uses para tu input de chat
                 'placeholder': 'Escribe un mensaje...',
-                'style': 'padding: 10px; border: 1px solid #ccc; border-radius: 5px;'
+                'rows': '1' # Para que empiece pequeño y el JS lo redimensione
             }),
             'tipo': forms.Select(attrs={
-                'class': 'form-control',
-                'style': 'padding: 10px; border: 1px solid #ccc; border-radius: 5px;'
+                'id': 'id_tipo', # El JS usa este ID (o name="tipo")
+                'class': 'form-control' # O la clase para ocultarlo, ej: 'd-none' o tu clase CSS
+                                        # No necesitas el style="" aquí si lo manejas con CSS
             }),
             'archivo': forms.ClearableFileInput(attrs={
-                'class': 'form-control-file',
-                'style': 'padding: 10px; border: 1px solid #ccc; border-radius: 5px;'
+                'id': 'id_archivo', # El JS usa este ID (o name="archivo")
+                'class': 'form-control-file' # O la clase para ocultarlo
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Aunque el modelo ya tiene default='texto', podemos ser explícitos.
+        # Si el modelo ya tiene el default, esta línea es redundante pero no daña.
+        if not self.initial.get('tipo') and 'tipo' in self.fields:
+             self.fields['tipo'].initial = 'texto'
+
+        # Determinar si los campos son requeridos
+        # Un mensaje puede ser solo texto, solo archivo, o ambos.
+        if 'contenido' in self.fields:
+            self.fields['contenido'].required = False
+        if 'archivo' in self.fields:
+            self.fields['archivo'].required = False
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+        contenido = cleaned_data.get('contenido')
+        archivo = cleaned_data.get('archivo')
+        tipo = cleaned_data.get('tipo') # Ya debería ser 'texto' por defecto
+
+        # Validar que al menos uno de los dos (contenido o archivo) esté presente
+        if not contenido and not archivo:
+            raise forms.ValidationError(
+                "Debes escribir un mensaje o adjuntar un archivo."
+            )
+
+        # Si es un tipo de archivo, pero no se proporciona archivo
+        if tipo in ['foto', 'video', 'archivo'] and not archivo:
+            raise forms.ValidationError(
+                f"Para enviar una {tipo.lower()}, debes seleccionar un archivo."
+            )
+        
+        # Si es tipo texto pero se envía un archivo sin contenido (opcional, depende de tu lógica)
+        # if tipo == 'texto' and archivo and not contenido:
+        #     cleaned_data['tipo'] = 'archivo' # O deducir el tipo del archivo si es posible
+
+        return cleaned_data
 
 class EditarUsuarioForm(forms.ModelForm):
     class Meta:
