@@ -22,7 +22,7 @@ def login(request):
             try:
                 usuario = Usuario.objects.get(nombre_usuario=nombre_usuario, contrasena=contrasena)
                 request.session['usuario_id'] = usuario.id
-                return redirect('lista_usuarios')
+                return redirect('dashboard')
             except Usuario.DoesNotExist:
                 form.add_error(None, 'Nombre de usuario o contraseña incorrectos.')
     else:

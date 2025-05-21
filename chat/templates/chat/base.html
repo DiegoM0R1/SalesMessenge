@@ -1,97 +1,642 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Estudio Tesen{% endblock %}</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/base_styles.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --dark-bg: #212529;
+            --light-text: #f8f9fa;
+            --dark-text: #343a40;
+            --transition-speed: 0.3s;
+        }
 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 60px;
+            overflow-x: hidden;
+        }
+
+        /* Theme modes */
+        body.light-mode {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+        }
+
+        body.dark-mode {
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+        }
+
+        /* Navbar styling */
+        .navbar {
+            transition: all var(--transition-speed);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 1rem;
+        }
+
+        .navbar.light-mode {
+            background-color: white;
+        }
+
+        .navbar.dark-mode {
+            background-color: #1a1e22;
+        }
+
+        .logo-navbar {
+            height: 40px;
+            transition: transform 0.3s;
+        }
+
+        .logo-navbar:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-link {
+            position: relative;
+            margin: 0 5px;
+            padding: 8px 12px !important;
+            border-radius: 5px;
+            transition: all var(--transition-speed);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background-color: var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 80%;
+            left: 10%;
+        }
+
+        .navbar.light-mode .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .navbar.dark-mode .nav-link:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+        }
+
+        /* User profile styling */
+        .foto-perfil {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+            border: 2px solid var(--secondary-color);
+            transition: all var(--transition-speed);
+        }
+
+        .foto-perfil:hover {
+            transform: scale(1.1);
+        }
+
+        /* Search bar styling */
+        .search-container {
+            position: relative;
+            margin-right: 15px;
+        }
+
+        .search-input {
+            border-radius: 20px;
+            padding-left: 35px;
+            transition: all var(--transition-speed);
+            border: 1px solid #ced4da;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .search-button {
+            border-radius: 20px;
+            margin-left: 5px;
+            transition: all var(--transition-speed);
+        }
+
+        /* Theme toggle button */
+        #theme-toggle {
+            border-radius: 20px;
+            padding: 0.375rem 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-speed);
+        }
+
+        #theme-toggle i {
+            margin-right: 5px;
+        }
+
+        body.light-mode #theme-toggle {
+            background-color: #343a40;
+            color: white;
+        }
+
+        body.dark-mode #theme-toggle {
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        /* Content container */
+        .container {
+            padding: 20px;
+            border-radius: 8px;
+            transition: all var(--transition-speed);
+            margin-top: 20px;
+        }
+
+        body.light-mode .container {
+            background-color: white;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .container {
+            background-color: #2d3436;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Card styling */
+        .card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        body.light-mode .card {
+            background-color: white;
+        }
+
+        body.dark-mode .card {
+            background-color: #2d3436;
+            color: var(--light-text);
+        }
+
+        /* Footer styling */
+        footer {
+            padding: 15px 0;
+            text-align: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            transition: all var(--transition-speed);
+        }
+
+        footer.light-mode {
+            background-color: #f8f9fa;
+            color: var(--dark-text);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        footer.dark-mode {
+            background-color: #1a1e22;
+            color: var(--light-text);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Dropdown menu styling */
+        .dropdown-menu {
+            border-radius: 8px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s;
+            padding: 0.5rem 0;
+        }
+
+        body.light-mode .dropdown-menu {
+            background-color: white;
+        }
+
+        body.dark-mode .dropdown-menu {
+            background-color: #2d3436;
+        }
+
+        body.dark-mode .dropdown-item {
+            color: var(--light-text);
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+            padding-left: 1.8rem;
+        }
+
+        body.dark-mode .dropdown-item:hover {
+            background-color: rgba(52, 152, 219, 0.2);
+        }
+
+        /* Mobile specific styles */
+        @media (max-width: 992px) {
+            .navbar-collapse {
+                background: inherit;
+                border-radius: 8px;
+                padding: 10px;
+                margin-top: 10px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            .nav-item {
+                margin: 5px 0;
+            }
+            
+            .search-container {
+                margin: 10px 0;
+                width: 100%;
+            }
+            
+            #theme-toggle {
+                margin: 10px 0;
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .form-inline {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .search-input, .search-button {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+
+        .nav-item:nth-child(1) { animation-delay: 0.1s; }
+        .nav-item:nth-child(2) { animation-delay: 0.2s; }
+        .nav-item:nth-child(3) { animation-delay: 0.3s; }
+        .nav-item:nth-child(4) { animation-delay: 0.4s; }
+        .nav-item:nth-child(5) { animation-delay: 0.5s; }
+
+        /* Notification indicator */
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translate(50%, -50%);
+        }
+
+        /* Pulse animation for new notifications */
+        @keyframes pulse {
+            0% { transform: translate(50%, -50%) scale(1); }
+            50% { transform: translate(50%, -50%) scale(1.2); }
+            100% { transform: translate(50%, -50%) scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Toast notification */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        .toast {
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            min-width: 250px;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        body.dark-mode ::-webkit-scrollbar-track {
+            background: #2d3436;
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb {
+            background: #555;
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+    </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <a class="navbar-brand" href="{% url 'dashboard' %}">
-            <img src="{% static 'imagenes/logo_empresa.png' %}" alt="Estudio Tesen" class="logo-navbar">
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mr-auto">
-                {% if request.session.usuario_id %}
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="{% url 'editar_perfil' %}">
-                            {% if usuario_actual.foto_perfil %}
-                                <img src="{{ usuario_actual.foto_perfil.url }}" alt="Foto de Perfil" class="foto-perfil">
-                            {% else %}
-                                <i class="bi bi-person-circle"></i>
-                            {% endif %}
-                            <span>{{ usuario_actual.nombre_usuario }} ({{ usuario_actual.get_tipo_usuario_display }})</span>
+<body class="dark-mode">
+    <!-- Toast container for notifications -->
+    <div class="toast-container">
+        <!-- Toasts will be dynamically added here -->
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark dark-mode">
+        <div class="container-fluid">
+            <a class="navbar-brand animate__animated animate__fadeIn" href="{% url 'dashboard' %}">
+                <img src="{% static 'imagenes/logo_empresa.png' %}" alt="Estudio Tesen" class="logo-navbar">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    {% if request.session.usuario_id %}
+                        <li class="nav-item animate__animated animate__fadeIn">
+                            <a class="nav-link d-flex align-items-center" href="{% url 'editar_perfil' %}">
+                                {% if usuario_actual.foto_perfil %}
+                                    <img src="{{ usuario_actual.foto_perfil.url }}" alt="Foto de Perfil" class="foto-perfil">
+                                {% else %}
+                                    <i class="bi bi-person-circle"></i>
+                                {% endif %}
+                                <span>{{ usuario_actual.nombre_usuario }} ({{ usuario_actual.get_tipo_usuario_display }})</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item animate__animated animate__fadeIn">
+                        <a class="nav-link d-flex align-items-center position-relative" href="{% url 'lista_usuarios' %}">
+                            <i class="bi bi-chat me-2"></i> Chats
+                            <span class="notification-badge pulse">3</span>
+                        </a>
+                    </li>               
+                    <li class="nav-item animate__animated animate__fadeIn">
+                        <a class="nav-link d-flex align-items-center" href="{% url 'lista_oportunidades' %}">
+                            <i class="bi bi-cash-coin me-2"></i> Ventas
+                        </a>
+                    </li>               
+                    
+                    <li class="nav-item animate__animated animate__fadeIn">
+                        <a class="nav-link d-flex align-items-center" href="{% url 'lista_clientes' %}">
+                            <i class="bi bi-people me-2"></i> Clientes
                         </a>
                     </li>
-                {% endif %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'lista_usuarios' %}"><i class="bi bi-chat"></i> Chats</a></li>               
-                <li class="nav-item"><a class="nav-link" href="{% url 'lista_oportunidades' %}"><i class="bi bi-cash-coin"></i> Ventas</a></li>               
-                
-                <li class="nav-item"><a class="nav-link" href="{% url 'lista_clientes' %}"><i class="bi bi-people"></i> Clientes</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="atencionDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="bi bi-headset"></i> Atención al Cliente
-                    </a>
-                    <div class="dropdown-menu" aria-labelledby="atencionDropdown">
-                        <a class="dropdown-item" href="{% url 'registrar_consulta' %}">Registrar Consulta</a>
-                        <a class="dropdown-item" href="{% url 'lista_consultas' %}">Lista de Consultas</a>
+                    <li class="nav-item dropdown animate__animated animate__fadeIn">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="atencionDropdown" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-headset me-2"></i> Atención al Cliente
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="atencionDropdown">
+                            <li><a class="dropdown-item" href="{% url 'registrar_consulta' %}">Registrar Consulta</a></li>
+                            <li><a class="dropdown-item" href="{% url 'lista_consultas' %}">Lista de Consultas</a></li>
+                        </ul>
+                    </li>
+                    {% if usuario_actual.tipo_usuario == 'admin' %}
+                    <li class="nav-item animate__animated animate__fadeIn">
+                        <a class="nav-link d-flex align-items-center" href="{% url 'backup_database' %}">
+                            <i class="bi bi-database-check me-2"></i> Backup
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item animate__animated animate__fadeIn">
+                        <a class="nav-link d-flex align-items-center" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+                        </a>
+                    </li>
+                </ul>
+                <form class="d-flex" method="get" action="{% url 'buscar' %}">
+                    <div class="search-container">
+                        <i class="bi bi-search search-icon"></i>
+                        <input class="form-control search-input" type="search" placeholder="Buscar" aria-label="Buscar" name="q">
+                        <input type="hidden" name="module" value="{% block module %}{% endblock %}">
                     </div>
-                </li>
-                {% if usuario_actual.tipo_usuario == 'admin' %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'backup_database' %}">Backup</a></li>
-    {% endif %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Cerrar Sesión</a></li>
-            
-            </ul>
-            <form class="form-inline my-2 my-lg-0" method="get" action="{% url 'buscar' %}">
-                <input class="form-control mr-sm-2" type="search" placeholder="Buscar" aria-label="Buscar" name="q">
-                <input type="hidden" name="module" value="{% block module %}{% endblock %}">
-                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>
-            </form>
-            <button id="theme-toggle" class="btn btn-secondary ml-auto">Cambiar Tema</button>
+                    <button class="btn btn-outline-success search-button" type="submit">Buscar</button>
+                </form>
+                <button id="theme-toggle" class="btn ms-lg-3">
+                    <i class="bi bi-moon-fill"></i> Modo Oscuro
+                </button>
+            </div>
         </div>
     </nav>
-    <div class="container mt-4">
+
+    <div class="container fade-in mt-4">
         {% block content %}
+        <div class="row">
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Bienvenido a Estudio Tesen</h5>
+                        <p class="card-text">Panel de administración y gestión para el estudio jurídico.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Actividad Reciente</h5>
+                        <p class="card-text">Aquí verás las últimas actualizaciones del sistema.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Estadísticas</h5>
+                        <p class="card-text">Resumen de métricas importantes para tu trabajo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endblock %}
     </div>
-    <footer>
-        <p>&copy; 2024 Estudio Tesen. Todos los derechos reservados.</p>
-    </footer>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        // Script para cambiar el tema
-        document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('theme-toggle');
-            const currentTheme = localStorage.getItem('theme') || 'dark-mode';
-            document.body.classList.add(currentTheme);
-            document.querySelector('.navbar').classList.add(currentTheme);
-            document.querySelector('footer').classList.add(currentTheme);
-            document.querySelectorAll('.usuario-item').forEach(item => item.classList.add(currentTheme));
 
+    <footer class="dark-mode mt-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <p class="mb-0">&copy; 2024 Estudio Tesen. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply stored theme
+            const themeToggle = document.getElementById('theme-toggle');
+            let currentTheme = localStorage.getItem('theme') || 'dark-mode';
+            const oppositeTheme = currentTheme === 'dark-mode' ? 'light-mode' : 'dark-mode';
+            
+            // Apply theme to body and elements
+            applyTheme(currentTheme);
+            
+            // Update theme toggle button text
+            updateThemeToggleButton(currentTheme);
+            
+            // Add animation classes to elements
+            document.querySelectorAll('.card, .container').forEach(item => {
+                item.classList.add('animate__animated', 'animate__fadeIn');
+            });
+            
+            // Theme toggle functionality
             themeToggle.addEventListener('click', function() {
-                const newTheme = document.body.classList.contains('dark-mode') ? 'light-mode' : 'dark-mode';
-                document.body.classList.toggle('dark-mode');
-                document.body.classList.toggle('light-mode');
-                document.querySelector('.navbar').classList.toggle('dark-mode');
-                document.querySelector('.navbar').classList.toggle('light-mode');
-                document.querySelector('footer').classList.toggle('dark-mode');
-                document.querySelector('footer').classList.toggle('light-mode');
-                document.querySelectorAll('.usuario-item').forEach(item => {
-                    item.classList.toggle('dark-mode');
-                    item.classList.toggle('light-mode');
+                currentTheme = document.body.classList.contains('dark-mode') ? 'light-mode' : 'dark-mode';
+                applyTheme(currentTheme);
+                updateThemeToggleButton(currentTheme);
+                localStorage.setItem('theme', currentTheme);
+                
+                // Show toast notification
+                showToast(`Cambiado a modo ${currentTheme === 'dark-mode' ? 'oscuro' : 'claro'}`);
+            });
+            
+            // Dropdown hover effect for desktop
+            if (window.innerWidth > 992) {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => {
+                    dropdown.addEventListener('mouseenter', function() {
+                        this.querySelector('.dropdown-toggle').click();
+                    });
+                    dropdown.addEventListener('mouseleave', function() {
+                        this.querySelector('.dropdown-toggle').click();
+                    });
                 });
-                localStorage.setItem('theme', newTheme);
+            }
+            
+            // Navbar scroll effect
+            window.addEventListener('scroll', function() {
+                const navbar = document.querySelector('.navbar');
+                if (window.scrollY > 10) {
+                    navbar.style.padding = '0.3rem 1rem';
+                    navbar.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                } else {
+                    navbar.style.padding = '0.5rem 1rem';
+                    navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+                }
             });
         });
+        
+        // Apply theme to all elements
+        function applyTheme(theme) {
+            const oppositeTheme = theme === 'dark-mode' ? 'light-mode' : 'dark-mode';
+            document.body.classList.remove(oppositeTheme);
+            document.body.classList.add(theme);
+            
+            document.querySelector('.navbar').classList.remove(oppositeTheme);
+            document.querySelector('.navbar').classList.add(theme);
+            
+            document.querySelector('footer').classList.remove(oppositeTheme);
+            document.querySelector('footer').classList.add(theme);
+            
+            // Update navbar classes
+            if (theme === 'dark-mode') {
+                document.querySelector('.navbar').classList.remove('navbar-light');
+                document.querySelector('.navbar').classList.add('navbar-dark');
+            } else {
+                document.querySelector('.navbar').classList.remove('navbar-dark');
+                document.querySelector('.navbar').classList.add('navbar-light');
+            }
+        }
+        
+        // Update theme toggle button icon and text
+        function updateThemeToggleButton(theme) {
+            const themeToggle = document.getElementById('theme-toggle');
+            if (theme === 'dark-mode') {
+                themeToggle.innerHTML = '<i class="bi bi-sun-fill"></i> Modo Claro';
+            } else {
+                themeToggle.innerHTML = '<i class="bi bi-moon-fill"></i> Modo Oscuro';
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message) {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast show animate__animated animate__fadeInUp';
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.setAttribute('aria-atomic', 'true');
+            
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <strong class="me-auto">Notificación</strong>
+                    <small>Ahora</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('animate__fadeInUp');
+                toast.classList.add('animate__fadeOutDown');
+                setTimeout(() => {
+                    toastContainer.removeChild(toast);
+                }, 1000);
+            }, 3000);
+        }
     </script>
 </body>
 </html>
